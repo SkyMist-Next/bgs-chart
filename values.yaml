@@ -1,95 +1,65 @@
-# Default values for bnetserver.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-nameOverride: ""
-fullnameOverride: ""
-
-env: "development"
-
+fullnameOverride: ''
 image:
-  repository: netcho/bnetserver
-  tag: 1.1.1
+  repository: ''
+  tag: ''
   pullPolicy: IfNotPresent
-
-frontend:
-  replicaCount: 1
-  resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #  cpu: 100m
-    #  memory: 128Mi
-    # requests:
-    #  cpu: 100m
-    #  memory: 128Mi
-
-  nodeSelector: {}
-
-  tolerations: []
-
-  affinity: {}
-
-  ingress:
-    annotations:
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-      ingress.appscode.com/type: LoadBalancer
-    hosts:
-      - chart-example.local
-    tls:
-      - hosts:
-          - chart-example.local
-
-rest:
-  replicaCount: 1
-  resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #  cpu: 100m
-    #  memory: 128Mi
-    # requests:
-    #  cpu: 100m
-    #  memory: 128Mi
-
-  nodeSelector: {}
-
-  tolerations: []
-
-  affinity: {}
-
-  ingress:
-    annotations:
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-      ingress.appscode.com/type: LoadBalancer
-    hosts:
-    - chart-example.local
-    tls:
-    - secretName: rest-certificates
-      hosts:
-      - chart-example.local
-
-mysqlConfig:
-  development:
-    hostname: "localhost"
-    username: "aurora"
-    password: "aurora"
-    database: "battlenet_development"
-  test:
-    hostname: "localhost"
-    username: "aurora"
-    password: "aurora"
-    database: "battlenet_test"
-  production:
-    hostname: "localhost"
-    username: "aurora"
-    password: "aurora"
-    database: "battlenet_production"
-
-rabbitmq: {}
+imagePullSecrets: []
+database:
+  create: false
+  mariaDbRef: skymist-db
+  host: skymist-db-primary
+  name: bgs
+  image: mariadb:11.4.10
+  size: 5Gi
+  storageClass: ''
+gateway:
+  className: ''
+  hostname: ''
+  frontendSecret: ''
+  restSecret: ''
+rabbitmq:
+  replicas: 3
+  image: rabbitmq:4.3.6-management
+  size: 10Gi
+  storageClass: ''
+replicas: 2
+services:
+  frontend: {}
+  rest: {}
+  authentication: {}
+  account: {}
+  game_utilities: {}
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+nodeSelector: {}
+tolerations: []
+affinity: {}
+redis-ha:
+  replicas: 3
+  auth: true
+  existingSecret: '{{ .Release.Name }}-redis-auth'
+  authKey: password
+  sentinel:
+    auth: true
+    existingSecret: '{{ .Release.Name }}-redis-auth'
+    authKey: sentinel-password
+    quorum: 2
+  redis:
+    masterGroupName: bgs
+    config:
+      appendonly: 'yes'
+      min-replicas-to-write: 1
+  persistentVolume:
+    enabled: true
+    size: 5Gi
+  networkPolicy:
+    enabled: true
+    ingressRules:
+    - selectors:
+      - podSelector:
+          matchLabels:
+            skymist.io/redis-client: '{{ .Release.Name }}'

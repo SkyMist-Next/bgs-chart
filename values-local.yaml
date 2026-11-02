@@ -1,0 +1,23 @@
+replicas: 1
+database:
+  create: true
+  mariaDbRef: ''
+  host: ''
+gateway:
+  className: cilium
+  hostname: bgs.local
+  frontendSecret: bgs-local-tls
+  restSecret: bgs-local-tls
+rabbitmq:
+  replicas: 1
+  size: 1Gi
+redis-ha:
+  replicas: 1
+  hardAntiAffinity: false
+  sentinel:
+    quorum: 1
+  redis:
+    config:
+      min-replicas-to-write: 0
+  persistentVolume:
+    size: 1Gi

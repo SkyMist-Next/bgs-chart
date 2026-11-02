@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "image",
+    "database",
+    "gateway",
+    "services"
+  ],
+  "properties": {
+    "image": {
+      "type": "object",
+      "required": [
+        "repository",
+        "tag"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,47}$"
+        }
+      }
+    },
+    "gateway": {
+      "type": "object",
+      "required": [
+        "className",
+        "hostname",
+        "frontendSecret",
+        "restSecret"
+      ],
+      "properties": {
+        "className": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hostname": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frontendSecret": {
+          "type": "string",
+          "minLength": 1
+        },
+        "restSecret": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "replicas": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "rabbitmq": {
+      "type": "object",
+      "properties": {
+        "replicas": {
+          "enum": [
+            1,
+            3,
+            5,
+            7
+          ]
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frontend",
+        "rest",
+        "authentication",
+        "account",
+        "game_utilities"
+      ],
+      "properties": {
+        "frontend": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "rest": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "authentication": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "account": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "game_utilities": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

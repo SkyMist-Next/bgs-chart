@@ -1,7 +1,0 @@
-dependencies:
-  - name: rabbitmq
-    version: 3.0.1
-    repository: '@stable'
-    import-values:
-      - child: rabbitmq
-        parent: rabbitmq

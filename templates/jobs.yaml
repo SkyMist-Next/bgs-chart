@@ -1,0 +1,74 @@
+{{- $name := include "bgs.name" . }}
+{{- $lock := printf "bgs-db-%s" (.Values.database.name | sha256sum | trunc 20) }}
+{{- range $job := list "bootstrap" "migrate" }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}-{{ $job }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}-{{ $job }}
+rules:
+{{- if eq $job "bootstrap" }}
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [create]
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [{{ $name }}-runtime, {{ $name }}-migrator, {{ $.Release.Name }}-redis-auth]
+    verbs: [get]
+{{- else }}
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [create]
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    resourceNames: [{{ $lock }}]
+    verbs: [get, update]
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-{{ $job }}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ $name }}-{{ $job }}}
+subjects:
+  - {kind: ServiceAccount, name: {{ $name }}-{{ $job }}, namespace: {{ $.Release.Namespace }}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}-{{ $job }}-{{ toJson $.Values | sha256sum | trunc 10 }}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 900
+  template:
+    spec:
+      serviceAccountName: {{ $name }}-{{ $job }}
+      restartPolicy: Never
+      imagePullSecrets: {{ $.Values.imagePullSecrets | toJson }}
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: {{ $job }}
+          image: {{ include "bgs.image" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args: [node, scripts/deploy.js, {{ $job }}]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources: {{ $.Values.resources | toJson }}
+          env:
+            - {name: MIGRATION_LOCK, value: {{ $lock | quote }}}
+            {{- if eq $job "bootstrap" }}
+            - {name: RELEASE_NAME, value: {{ $.Release.Name | quote }}}
+            - {name: DB_HOST, value: {{ include "bgs.dbhost" $ | quote }}}
+            - {name: DB_NAME, value: {{ $.Values.database.name | quote }}}
+            - name: SECRET_SPECS
+              value: {{ list (dict "name" (printf "%s-runtime" $name) "username" (printf "%s-runtime" $name) "keys" (list "username" "password" "url")) (dict "name" (printf "%s-migrator" $name) "username" (printf "%s-migrator" $name) "keys" (list "username" "password" "url")) (dict "name" (printf "%s-redis-auth" $.Release.Name) "keys" (list "password" "sentinel-password")) | toJson | quote }}
+            {{- else }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-migrator, key: url}
+            {{- end }}
+{{- end }}

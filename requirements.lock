@@ -1,9 +1,0 @@
-dependencies:
-- name: rabbitmq
-  repository: https://kubernetes-charts.storage.googleapis.com
-  version: 3.0.1
-- name: zookeeper
-  repository: http://monasca.io/monasca-helm
-  version: 0.3.8
-digest: sha256:5c382654123c7d88d9f7759ac8634b59d3c93ef4e3b4a79505435ee183724723
-generated: 2018-10-30T22:19:44.4801275+02:00

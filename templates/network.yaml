@@ -1,0 +1,60 @@
+{{- $name := include "bgs.name" . }}
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: {{ $name }}-rabbitmq
+spec:
+  replicas: {{ .Values.rabbitmq.replicas }}
+  image: {{ .Values.rabbitmq.image }}
+  persistence:
+    storage: {{ .Values.rabbitmq.size }}
+    {{- with .Values.rabbitmq.storageClass }}
+    storageClassName: {{ . }}
+    {{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $name }}
+spec:
+  gatewayClassName: {{ required "gateway.className required" .Values.gateway.className }}
+  listeners:
+    - name: frontend
+      protocol: TCP
+      port: 1119
+      allowedRoutes: {namespaces: {from: Same}}
+    - name: rest
+      protocol: HTTPS
+      port: 443
+      hostname: {{ .Values.gateway.hostname | quote }}
+      tls:
+        mode: Terminate
+        certificateRefs: [{name: {{ required "gateway.restSecret required" .Values.gateway.restSecret }}}]
+      allowedRoutes: {namespaces: {from: Same}}
+{{ range $component := list "frontend" "rest" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-{{ $component }}
+spec:
+  type: ClusterIP
+  selector: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
+  ports:
+    - {name: service, port: {{ ternary 1119 8080 (eq $component "frontend") }}, targetPort: {{ ternary "frontend" "http" (eq $component "frontend") }}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: {{ ternary "TCPRoute" "HTTPRoute" (eq $component "frontend") }}
+metadata:
+  name: {{ $name }}-{{ $component }}
+spec:
+  parentRefs: [{name: {{ $name }}, sectionName: {{ $component }}}]
+  {{- if eq $component "rest" }}
+  hostnames: [{{ $.Values.gateway.hostname | quote }}]
+  {{- end }}
+  rules:
+    - backendRefs: [{name: {{ $name }}-{{ $component }}, port: {{ ternary 1119 8080 (eq $component "frontend") }}}]
+      {{- if eq $component "rest" }}
+      matches: [{path: {type: PathPrefix, value: /bnetserver/login}}]
+      {{- end }}
+{{ end }}

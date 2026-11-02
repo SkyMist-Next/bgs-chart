@@ -1,0 +1,61 @@
+{{- $name := include "bgs.name" . }}
+{{- if .Values.database.create }}
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: {{ include "bgs.dbref" . }}
+spec:
+  image: {{ .Values.database.image }}
+  replicas: 1
+  rootPasswordSecretKeyRef:
+    name: {{ $name }}-db-root
+    key: password
+    generate: true
+  storage:
+    size: {{ .Values.database.size }}
+    {{- with .Values.database.storageClass }}
+    storageClassName: {{ . }}
+    {{- end }}
+---
+{{- end }}
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: {{ $name }}
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" . }}}
+  name: {{ .Values.database.name | quote }}
+  characterSet: utf8mb4
+  collate: utf8mb4_unicode_ci
+  cleanupPolicy: Skip
+{{ range $role := list "runtime" "migrator" }}
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: User
+metadata:
+  name: {{ $name }}-{{ $role }}
+  labels:
+    skymist.io/database-role: bgs-{{ $role }}
+    {{- include "bgs.labels" $ | nindent 4 }}
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" $ }}}
+  name: {{ $name }}-{{ $role }}
+  host: "%"
+  maxUserConnections: {{ ternary 100 10 (eq $role "runtime") }}
+  passwordSecretKeyRef: {name: {{ $name }}-{{ $role }}, key: password}
+  cleanupPolicy: Skip
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: {{ $name }}-{{ $role }}
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" $ }}}
+  username: {{ $name }}-{{ $role }}
+  host: "%"
+  database: {{ $.Values.database.name | quote }}
+  table: "*"
+  grantOption: false
+  privileges: {{ if eq $role "runtime" }}[SELECT, INSERT, UPDATE, DELETE]{{ else }}[ALL PRIVILEGES]{{ end }}
+  cleanupPolicy: Skip
+{{ end }}

@@ -1,0 +1,109 @@
+{{- $name := include "bgs.name" . }}
+{{- range $service, $settings := .Values.services }}
+{{- $component := $service | replace "_" "-" }}
+{{- $replicas := int (dig "replicas" $.Values.replicas $settings) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}-{{ $component }}
+spec:
+  replicas: {{ $replicas }}
+  selector:
+    matchLabels: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
+  strategy:
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ $.Release.Name | quote }}
+        app.kubernetes.io/component: {{ $component }}
+        skymist.io/redis-client: {{ $.Release.Name | quote }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") $ | sha256sum }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      imagePullSecrets: {{ $.Values.imagePullSecrets | toJson }}
+      nodeSelector: {{ default $.Values.nodeSelector $settings.nodeSelector | toJson }}
+      affinity: {{ default $.Values.affinity $settings.affinity | toJson }}
+      tolerations: {{ default $.Values.tolerations $settings.tolerations | toJson }}
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000, seccompProfile: {type: RuntimeDefault}}
+      initContainers:
+        - name: schema
+          image: {{ include "bgs.image" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args: [node, scripts/deploy.js, wait]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources: {{ $.Values.resources | toJson }}
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-runtime, key: url}
+      containers:
+        - name: bgs
+          image: {{ include "bgs.image" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args: {{ if eq $service "frontend" }}[node, frontend.js]{{ else if eq $service "rest" }}[node, rest.js]{{ else }}[node, server.js, {{ $service }}]{{ end }}
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources: {{ default $.Values.resources $settings.resources | toJson }}
+          ports:
+            - {name: health, containerPort: 8081}
+            {{- if eq $service "frontend" }}
+            - {name: frontend, containerPort: 1119}
+            {{- else if eq $service "rest" }}
+            - {name: http, containerPort: 8080}
+            {{- end }}
+          startupProbe: {httpGet: {path: /ready, port: health}, periodSeconds: 5, failureThreshold: 24}
+          readinessProbe: {httpGet: {path: /ready, port: health}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /alive, port: health}, periodSeconds: 10}
+          envFrom:
+            - configMapRef: {name: {{ $name }}-redis-connection}
+          env:
+            - {name: NODE_ENV, value: production}
+            - {name: BGS_HEALTH_PORT, value: "8081"}
+            - {name: BGS_TLS, value: {{ eq $service "frontend" | quote }}}
+            - {name: BGS_PORT, value: {{ ternary "8080" "1119" (eq $service "rest") | quote }}}
+            - {name: WEB_AUTH_URL, value: {{ printf "https://%s/bnetserver/login/" (required "gateway.hostname required" $.Values.gateway.hostname) | quote }}}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-runtime, key: url}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: {{ $.Release.Name }}-redis-auth, key: password}
+            - name: REDIS_SENTINEL_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: {{ $.Release.Name }}-redis-auth, key: sentinel-password}
+            {{- if ne $service "rest" }}
+            - {name: RABBITMQ_SERVICE_NAME, value: {{ $name }}-rabbitmq}
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-rabbitmq-default-user, key: username}
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-rabbitmq-default-user, key: password}
+            {{- end }}
+          volumeMounts:
+            - {name: config, mountPath: /usr/src/app/config, readOnly: true}
+            {{- if eq $service "frontend" }}
+            - {name: certs, mountPath: /usr/src/app/certs, readOnly: true}
+            {{- end }}
+      volumes:
+        - name: config
+          configMap: {name: {{ $name }}-config}
+        {{- if eq $service "frontend" }}
+        - name: certs
+          secret: {secretName: {{ required "gateway.frontendSecret required" $.Values.gateway.frontendSecret }}}
+        {{- end }}
+{{- if gt $replicas 1 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $name }}-{{ $component }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
+{{- end }}
+{{- end }}
