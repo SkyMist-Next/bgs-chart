@@ -6,3 +6,16 @@
 app.kubernetes.io/instance: {{ .Release.Name | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 {{- end }}
+
+{{- define "bgs.tlsSecret" -}}
+{{- $existing := index .Values.gateway .endpoint -}}
+{{- if .Values.certificate.enabled -}}
+{{- $managed := default (printf "%s-tls" (include "bgs.name" .)) .Values.certificate.secretName -}}
+{{- if and $existing (ne $existing $managed) -}}
+{{- fail "gateway TLS Secret overrides must match certificate.secretName when certificate.enabled=true" -}}
+{{- end -}}
+{{- $managed -}}
+{{- else -}}
+{{- required (printf "gateway.%s required when certificate.enabled=false" .endpoint) $existing -}}
+{{- end -}}
+{{- end -}}

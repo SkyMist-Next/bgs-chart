@@ -96,7 +96,7 @@ spec:
           configMap: {name: {{ $name }}-config}
         {{- if eq $service "frontend" }}
         - name: certs
-          secret: {secretName: {{ required "gateway.frontendSecret required" $.Values.gateway.frontendSecret }}, defaultMode: 0440, items: [{key: tls.crt, path: tls.crt}, {key: tls.key, path: tls.key}]}
+          secret: {secretName: {{ include "bgs.tlsSecret" (merge (dict "endpoint" "frontendSecret") $) | quote }}, defaultMode: 0440, items: [{key: tls.crt, path: tls.crt}, {key: tls.key, path: tls.key}]}
         {{- end }}
 {{- if gt $replicas 1 }}
 ---

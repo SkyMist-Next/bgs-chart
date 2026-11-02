@@ -11,3 +11,6 @@ redis-ha:
   replicas: 3
   sentinel:
     quorum: 2
+
+certificate:
+  enabled: true

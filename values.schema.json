@@ -12,7 +12,9 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -72,12 +74,10 @@
           "minLength": 1
         },
         "frontendSecret": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "restSecret": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         }
       }
     },
@@ -155,6 +155,72 @@
           }
         }
       }
+    },
+    "certificate": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "issuerRef"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "secretName": {
+          "type": "string"
+        },
+        "issuerRef": {
+          "type": "object",
+          "required": [
+            "name",
+            "kind",
+            "group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "group": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "certificate": {
+            "properties": {
+              "enabled": {
+                "const": false
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gateway": {
+            "properties": {
+              "frontendSecret": {
+                "minLength": 1
+              },
+              "restSecret": {
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

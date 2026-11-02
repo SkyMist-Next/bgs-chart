@@ -66,3 +66,13 @@ redis-ha:
       - podSelector:
           matchLabels:
             skymist.io/redis-client: '{{ .Release.Name }}'
+
+# Issue a leaf certificate using an existing same-namespace Issuer.
+certificate:
+  enabled: false
+  # Empty uses <BGS fullname>-tls for the generated Secret.
+  secretName: ''
+  issuerRef:
+    name: bgs-ca
+    kind: Issuer
+    group: cert-manager.io

@@ -1,0 +1,24 @@
+{{- if .Values.certificate.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "bgs.name" . }}-tls
+  labels: {{ include "bgs.labels" . | nindent 4 }}
+spec:
+  secretName: {{ default (printf "%s-tls" (include "bgs.name" .)) .Values.certificate.secretName | quote }}
+  issuerRef:
+    name: {{ required "certificate.issuerRef.name required" .Values.certificate.issuerRef.name | quote }}
+    kind: {{ .Values.certificate.issuerRef.kind | quote }}
+    group: {{ .Values.certificate.issuerRef.group | quote }}
+  dnsNames:
+    - {{ required "gateway.hostname required" .Values.gateway.hostname | quote }}
+  isCA: false
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    encoding: PKCS1
+    rotationPolicy: Always
+  usages: [digital signature, key encipherment, server auth]
+{{- end }}

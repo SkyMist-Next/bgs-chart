@@ -18,6 +18,9 @@ metadata:
   name: {{ $name }}
 spec:
   gatewayClassName: {{ required "gateway.className required" .Values.gateway.className }}
+  infrastructure:
+    labels:
+      scope: public
   listeners:
     - name: frontend
       protocol: TCP
@@ -29,7 +32,7 @@ spec:
       hostname: {{ .Values.gateway.hostname | quote }}
       tls:
         mode: Terminate
-        certificateRefs: [{name: {{ required "gateway.restSecret required" .Values.gateway.restSecret }}}]
+        certificateRefs: [{name: {{ include "bgs.tlsSecret" (merge (dict "endpoint" "restSecret") .) | quote }}}]
       allowedRoutes: {namespaces: {from: Same}}
 {{ range $component := list "frontend" "rest" }}
 ---

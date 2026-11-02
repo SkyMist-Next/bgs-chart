@@ -21,3 +21,6 @@ redis-ha:
       min-replicas-to-write: 0
   persistentVolume:
     size: 1Gi
+
+certificate:
+  enabled: false
