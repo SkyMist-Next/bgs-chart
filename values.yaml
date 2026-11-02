@@ -15,7 +15,14 @@ database:
   image: mariadb:11.4.10
   size: 5Gi
   storageClass: ''
+security:
+  ipBansEnabled: false
 gateway:
+  proxyProtocol: 'off'
+  trustedProxyCIDRs: []
+  trustedHttpProxyCIDRs: []
+  namespaceSelector: {kubernetes.io/metadata.name: envoy-gateway-system}
+  podSelector: {app.kubernetes.io/name: envoy}
   className: ''
   hostname: ''
   frontendSecret: ''
@@ -76,3 +83,6 @@ certificate:
     name: bgs-ca
     kind: Issuer
     group: cert-manager.io
+
+realmDirectory:
+  database: skymist_operator

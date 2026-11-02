@@ -27,12 +27,11 @@ spec:
       port: 1119
       allowedRoutes: {namespaces: {from: Same}}
     - name: rest
-      protocol: HTTPS
+      protocol: TLS
       port: 443
       hostname: {{ .Values.gateway.hostname | quote }}
       tls:
-        mode: Terminate
-        certificateRefs: [{name: {{ include "bgs.tlsSecret" (merge (dict "endpoint" "restSecret") .) | quote }}}]
+        mode: Passthrough
       allowedRoutes: {namespaces: {from: Same}}
 {{ range $component := list "frontend" "rest" }}
 ---
@@ -44,12 +43,14 @@ spec:
   type: ClusterIP
   selector: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
   ports:
-    - {name: service, port: {{ ternary 1119 8080 (eq $component "frontend") }}, targetPort: {{ ternary "frontend" "http" (eq $component "frontend") }}}
+    - {name: service, port: {{ ternary 1119 8080 (eq $component "frontend") }}, targetPort: {{ ternary "frontend" "https" (eq $component "frontend") }}}
 ---
 apiVersion: gateway.networking.k8s.io/v1
-kind: {{ ternary "TCPRoute" "HTTPRoute" (eq $component "frontend") }}
+kind: {{ ternary "TCPRoute" "TLSRoute" (eq $component "frontend") }}
 metadata:
   name: {{ $name }}-{{ $component }}
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
 spec:
   parentRefs: [{name: {{ $name }}, sectionName: {{ $component }}}]
   {{- if eq $component "rest" }}
@@ -57,7 +58,4 @@ spec:
   {{- end }}
   rules:
     - backendRefs: [{name: {{ $name }}-{{ $component }}, port: {{ ternary 1119 8080 (eq $component "frontend") }}}]
-      {{- if eq $component "rest" }}
-      matches: [{path: {type: PathPrefix, value: /bnetserver/login}}]
-      {{- end }}
 {{ end }}

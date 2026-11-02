@@ -59,3 +59,18 @@ spec:
   privileges: {{ if eq $role "runtime" }}[SELECT, INSERT, UPDATE, DELETE]{{ else }}[ALL PRIVILEGES]{{ end }}
   cleanupPolicy: Skip
 {{ end }}
+
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: {{ $name }}-realm-directory
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" . }}}
+  username: {{ $name }}-runtime
+  host: "%"
+  database: {{ .Values.realmDirectory.database | quote }}
+  table: realmlist
+  privileges: [SELECT]
+  grantOption: false
+  cleanupPolicy: Skip

@@ -5,7 +5,7 @@ metadata:
   name: {{ $name }}-config
 data:
   database.json: '{"production":{"use_env_variable":"DATABASE_URL","dialect":"mysql","dialectOptions":{"bigNumberStrings":true},"syncOnStart":false}}'
-  winston.json: '{"console":true,"level":"info","json":true}'
+  winston.json: '{"console":true,"level":"debug","json":true}'
 ---
 apiVersion: v1
 kind: ConfigMap

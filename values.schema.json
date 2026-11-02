@@ -78,6 +78,38 @@
         },
         "restSecret": {
           "type": "string"
+        },
+        "trustedProxyCIDRs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trustedHttpProxyCIDRs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "namespaceSelector": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "podSelector": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "proxyProtocol": {
+          "enum": [
+            "off",
+            "v2"
+          ]
         }
       }
     },
@@ -190,6 +222,14 @@
               "minLength": 1
             }
           }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "ipBansEnabled": {
+          "type": "boolean"
         }
       }
     }

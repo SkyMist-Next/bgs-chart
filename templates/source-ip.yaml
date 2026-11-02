@@ -1,0 +1,36 @@
+{{- if .Values.security.ipBansEnabled }}{{ fail "IP bans require verified REST client addresses, unavailable with TLS passthrough" }}{{ end }}
+{{- if and .Values.security.ipBansEnabled (ne .Values.gateway.proxyProtocol "v2") }}{{ fail "security.ipBansEnabled requires gateway.proxyProtocol=v2 and verified gateway source peers" }}{{ end }}
+{{- if eq .Values.gateway.proxyProtocol "v2" }}
+{{- $name := include "bgs.name" . }}
+{{- if or (not .Values.gateway.trustedProxyCIDRs) (not .Values.gateway.trustedHttpProxyCIDRs) }}{{ fail "gateway.trustedProxyCIDRs and gateway.trustedHttpProxyCIDRs must identify gateway source peers" }}{{ end }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: {{ $name }}-source-ip
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: TCPRoute
+      name: {{ $name }}-frontend
+  proxyProtocol:
+    version: V2
+{{- range $component := list "frontend" "rest" }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $name }}-{{ $component }}-gateway
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {matchLabels: {{ $.Values.gateway.namespaceSelector | toJson }}}
+          podSelector: {matchLabels: {{ $.Values.gateway.podSelector | toJson }}}
+      ports: [{port: {{ ternary 1119 8080 (eq $component "frontend") }}, protocol: TCP}]
+    # Health endpoints reveal no credentials and remain reachable to kubelet probes.
+    - ports: [{port: 8081, protocol: TCP}]
+{{- end }}
+
+{{- end }}

@@ -58,8 +58,7 @@ a MariaDB. The chart does not alter or own the existing MariaDB instance.
 Production uses two replicas of each BGS service, three RabbitMQ nodes and three
 Redis/Sentinel nodes. Redis requires distinct nodes by default. Adjust resources,
 storage classes and capacity before installation. Frontend TCPRoute passes TLS
-on 1119 to Pods; REST HTTPS terminates at the Gateway, with only the login path
-routed to HTTP port 8080. Internal health listens on 8081.
+on 1119 to Pods; REST TLS passes through the Gateway to HTTPS port 8080 in BGS. Internal health listens on 8081.
 
 Optional `webAuthUrl` overrides the advertised HTTPS login base URL, including a
 forwarded port; it must end in `/bnetserver/login/`. When empty, the chart uses
@@ -148,16 +147,20 @@ client acceptance is a separate check. Worker quorum queues prevent broadcast to
 every replica, but do not promise exactly-once delivery across broker failures.
 
 With `certificate.enabled=true`, the chart creates one Certificate for
-`gateway.hostname`, issued by `certificate.issuerRef` (default `bgs-ca`, kind
+`gateway.hostname` in both the subject CN and DNS SAN, issued by `certificate.issuerRef` (default `bgs-ca`, kind
 `Issuer`, group `cert-manager.io`). cert-manager creates and renews its Secret.
-`certificate.secretName` defaults to `<BGS fullname>-tls`; both the Gateway and
-frontend use it. Conflicting `gateway.*Secret` overrides fail rendering.
+`certificate.secretName` defaults to `<BGS fullname>-tls`; both REST and frontend Pods use it. Conflicting `gateway.*Secret` overrides fail rendering.
 
 With `certificate.enabled=false` (base/local default), supply existing Secrets
 through `gateway.frontendSecret` and `gateway.restSecret`; separate names remain
 supported. The chart does not create a TLS Secret in this mode. Each must contain
 a matching `tls.crt` full chain and unencrypted
-PEM `tls.key`. Local tooling additionally requires public `ca.crt`. Frontend mounts
+PEM `tls.key`. Local tooling additionally requires public `ca.crt`. Frontend and REST mounts
 use a full Secret volume with mode 0440 and fsGroup 1000, allowing Node to reload
-updates without a restart. Keep Secret updates mutable and verify Gateway renewal
-behavior. No CA signing keys belong in these Secrets.
+updates without a restart. Keep Secret updates mutable and verify renewed certificates at both public endpoints. No CA signing keys belong in these Secrets.
+
+### Source addresses and IP bans
+
+The default single Gateway works with Cilium: frontend TLS passes through on 1119 and REST TLS passes through the Gateway on 443. `security.ipBansEnabled` defaults to `false`; account bans and suspensions remain active. `gateway.proxyProtocol` defaults to `off`, requiring no trusted CIDRs or Envoy Gateway extension resources. Optional `v2` mode requires Envoy Gateway, its BackendTrafficPolicy CRD, and both gateway trusted-peer CIDR lists; its ingress selectors must match the actual gateway Pods. Verify source forwarding before enabling IP bans.
+
+REST uses TLSRoute v1 and terminates HTTPS in BGS to preserve legacy client header casing. The existing REST leaf Secret is mounted read-only and reloaded every 30 seconds. Health probes remain HTTP on 8081. TLS passthrough cannot supply trusted HTTP forwarding headers; IP bans are unsupported in this chart mode. Upgrading from HTTP backends briefly interrupts login; roll back the full Helm release to restore both transport ends together.

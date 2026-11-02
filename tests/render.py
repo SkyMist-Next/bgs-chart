@@ -5,7 +5,7 @@ import subprocess
 import yaml
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 for profile, replicas in [('local', 1), ('production', 2)]:
-    cmd = ['helm', 'template', 'contract', str(ROOT), '-n', 'contract', '-f', str(ROOT / f'values-{profile}.yaml'), '--set', 'image.repository=bgs,image.tag=test,gateway.hostname=bgs.example']
+    cmd = ['helm', 'template', 'contract', str(ROOT), '-n', 'contract', '-f', str(ROOT / f'values-{profile}.yaml'), '--set', 'image.repository=bgs,image.tag=test,gateway.hostname=bgs.example,gateway.trustedProxyCIDRs[0]=192.0.2.0/24,gateway.trustedHttpProxyCIDRs[0]=192.0.2.0/24']
     expected_secret = 'bgs-local-tls' if profile == 'local' else 'contract-bgs-tls'
     rendered = subprocess.check_output(cmd)
     assert rendered == subprocess.check_output(cmd), 'Nondeterministic rendering'
@@ -15,12 +15,16 @@ for profile, replicas in [('local', 1), ('production', 2)]:
     if certificates:
         spec = certificates[0]['spec']
         assert spec['secretName'] == expected_secret
+        assert spec['commonName'] == 'bgs.example'
         assert spec['dnsNames'] == ['bgs.example']
         assert spec['issuerRef'] == {'name': 'bgs-ca', 'kind': 'Issuer', 'group': 'cert-manager.io'}
         assert spec['privateKey']['rotationPolicy'] == 'Always' and not spec['isCA']
         assert 'server auth' in spec['usages']
     gateway = next(d for d in docs if d['kind'] == 'Gateway')
-    assert gateway['spec']['listeners'][1]['tls']['certificateRefs'][0]['name'] == expected_secret
+    assert gateway['spec']['listeners'][1]['tls'] == {'mode': 'Passthrough'}
+    assert gateway['spec']['listeners'][1]['protocol'] == 'TLS'
+    assert not any(d['kind'] == 'HTTPRoute' for d in docs)
+    assert next(d for d in docs if d['kind'] == 'TLSRoute')['spec']['rules'][0]['backendRefs'][0]['port'] == 8080
     deployments = [d for d in docs if d['kind'] == 'Deployment']
     assert len(deployments) == 5
     assert all(d['spec']['replicas'] == replicas for d in deployments)
@@ -33,7 +37,7 @@ for profile, replicas in [('local', 1), ('production', 2)]:
     assert len([d for d in docs if d['kind'] == 'MariaDB']) == (profile == 'local')
     for d in deployments:
         pod = d['spec']['template']['spec']
-        frontend = d['metadata']['name'].endswith('-frontend')
+        frontend = d['metadata']['name'].endswith(('-frontend', '-rest'))
         cert_volumes = [v for v in pod['volumes'] if v['name'] == 'certs']
         assert len(cert_volumes) == int(frontend)
         if frontend:
@@ -64,7 +68,7 @@ custom = cmd + ['--set', 'certificate.secretName=custom-tls,certificate.issuerRe
 docs = [d for d in yaml.safe_load_all(subprocess.check_output(custom)) if d]
 assert next(d for d in docs if d['kind'] == 'Certificate')['spec']['issuerRef']['name'] == 'custom-ca'
 assert next(d for d in docs if d['kind'] == 'Certificate')['spec']['secretName'] == 'custom-tls'
-assert next(d for d in docs if d['kind'] == 'Gateway')['spec']['listeners'][1]['tls']['certificateRefs'][0]['name'] == 'custom-tls'
+assert next(v for v in next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-rest'))['spec']['template']['spec']['volumes'] if v['name'] == 'certs')['secret']['secretName'] == 'custom-tls'
 frontend = next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-frontend'))
 assert next(v for v in frontend['spec']['template']['spec']['volumes'] if v['name'] == 'certs')['secret']['secretName'] == 'custom-tls'
 for endpoint in ['frontendSecret', 'restSecret']:
@@ -73,7 +77,7 @@ for endpoint in ['frontendSecret', 'restSecret']:
 external = cmd + ['--set', 'certificate.enabled=false,gateway.frontendSecret=external-front,gateway.restSecret=external-rest']
 docs = [d for d in yaml.safe_load_all(subprocess.check_output(external)) if d]
 assert not any(d['kind'] == 'Certificate' for d in docs)
-assert next(d for d in docs if d['kind'] == 'Gateway')['spec']['listeners'][1]['tls']['certificateRefs'][0]['name'] == 'external-rest'
+assert next(v for v in next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-rest'))['spec']['template']['spec']['volumes'] if v['name'] == 'certs')['secret']['secretName'] == 'external-rest'
 frontend = next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-frontend'))
 assert next(v for v in frontend['spec']['template']['spec']['volumes'] if v['name'] == 'certs')['secret']['secretName'] == 'external-front'
 print('Managed certificate overrides, conflicting Secret rejection, and external Secret compatibility passed')
