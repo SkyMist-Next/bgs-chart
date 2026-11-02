@@ -1,8 +1,6 @@
-{{- if .Values.security.ipBansEnabled }}{{ fail "IP bans require verified REST client addresses, unavailable with TLS passthrough" }}{{ end }}
-{{- if and .Values.security.ipBansEnabled (ne .Values.gateway.proxyProtocol "v2") }}{{ fail "security.ipBansEnabled requires gateway.proxyProtocol=v2 and verified gateway source peers" }}{{ end }}
 {{- if eq .Values.gateway.proxyProtocol "v2" }}
 {{- $name := include "bgs.name" . }}
-{{- if or (not .Values.gateway.trustedProxyCIDRs) (not .Values.gateway.trustedHttpProxyCIDRs) }}{{ fail "gateway.trustedProxyCIDRs and gateway.trustedHttpProxyCIDRs must identify gateway source peers" }}{{ end }}
+{{- if not .Values.gateway.trustedProxyCIDRs }}{{ fail "gateway.trustedProxyCIDRs must identify gateway source peers" }}{{ end }}
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:

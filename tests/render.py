@@ -5,7 +5,7 @@ import subprocess
 import yaml
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 for profile, replicas in [('local', 1), ('production', 2)]:
-    cmd = ['helm', 'template', 'contract', str(ROOT), '-n', 'contract', '-f', str(ROOT / f'values-{profile}.yaml'), '--set', 'image.repository=bgs,image.tag=test,gateway.hostname=bgs.example,gateway.trustedProxyCIDRs[0]=192.0.2.0/24,gateway.trustedHttpProxyCIDRs[0]=192.0.2.0/24']
+    cmd = ['helm', 'template', 'contract', str(ROOT), '-n', 'contract', '-f', str(ROOT / f'values-{profile}.yaml'), '--set', 'image.repository=bgs,image.tag=test,gateway.hostname=bgs.example']
     expected_secret = 'bgs-local-tls' if profile == 'local' else 'contract-bgs-tls'
     rendered = subprocess.check_output(cmd)
     assert rendered == subprocess.check_output(cmd), 'Nondeterministic rendering'
@@ -49,6 +49,8 @@ for profile, replicas in [('local', 1), ('production', 2)]:
             mount = next(m for m in pod['containers'][0]['volumeMounts'] if m['name'] == 'certs')
             assert mount['readOnly'] and 'subPath' not in mount
         env = {e['name']: e.get('value') for e in pod['containers'][0]['env']}
+        assert env['BGS_IP_BANS_ENABLED'] == 'true'
+        assert env['BGS_PROXY_PROTOCOL'] == 'off'
         assert env['BGS_TLS_SERVER_NAME'] == 'bgs.example'
         assert env['BGS_TLS'] == ('true' if frontend else 'false')
         assert pod['automountServiceAccountToken'] is False
@@ -81,3 +83,18 @@ assert next(v for v in next(d for d in docs if d['kind'] == 'Deployment' and d['
 frontend = next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-frontend'))
 assert next(v for v in frontend['spec']['template']['spec']['volumes'] if v['name'] == 'certs')['secret']['secretName'] == 'external-front'
 print('Managed certificate overrides, conflicting Secret rejection, and external Secret compatibility passed')
+
+
+for enabled in ['true', 'false']:
+    docs = [d for d in yaml.safe_load_all(subprocess.check_output(cmd + ['--set', f'security.ipBansEnabled={enabled}'])) if d]
+    assert not any(d['kind'] == 'BackendTrafficPolicy' for d in docs)
+    for d in docs:
+        if d['kind'] == 'Deployment':
+            env = {e['name']: e.get('value') for e in d['spec']['template']['spec']['containers'][0]['env']}
+            assert env['BGS_IP_BANS_ENABLED'] == enabled
+v2 = cmd + ['--set', 'gateway.proxyProtocol=v2', '--set-json', 'gateway.trustedProxyCIDRs=["192.0.2.0/24"]']
+docs = [d for d in yaml.safe_load_all(subprocess.check_output(v2)) if d]
+assert len([d for d in docs if d['kind'] == 'BackendTrafficPolicy']) == 1
+result = subprocess.run(v2 + ['--set-json', 'gateway.trustedProxyCIDRs=[]'], capture_output=True)
+assert result.returncode != 0 and b'gateway.trustedProxyCIDRs' in result.stderr
+print('Default and disabled IP bans plus optional frontend PROXY v2 validation passed')

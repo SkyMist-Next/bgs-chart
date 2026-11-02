@@ -16,7 +16,7 @@ database:
   size: 5Gi
   storageClass: ''
 security:
-  ipBansEnabled: false
+  ipBansEnabled: true
 gateway:
   proxyProtocol: 'off'
   trustedProxyCIDRs: []
