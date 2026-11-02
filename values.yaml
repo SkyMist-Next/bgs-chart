@@ -3,6 +3,8 @@ image:
   repository: ''
   tag: ''
   pullPolicy: IfNotPresent
+# Existing registry Secrets in the release namespace, used by BGS Pods and Jobs.
+# Example: [{name: registry-secret}]
 imagePullSecrets: []
 webAuthUrl: ''
 database:

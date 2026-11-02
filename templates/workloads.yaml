@@ -24,7 +24,9 @@ spec:
     spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
-      imagePullSecrets: {{ $.Values.imagePullSecrets | toJson }}
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets: {{ . | toJson }}
+      {{- end }}
       nodeSelector: {{ default $.Values.nodeSelector $settings.nodeSelector | toJson }}
       affinity: {{ default $.Values.affinity $settings.affinity | toJson }}
       tolerations: {{ default $.Values.tolerations $settings.tolerations | toJson }}

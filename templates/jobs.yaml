@@ -49,7 +49,9 @@ spec:
     spec:
       serviceAccountName: {{ $name }}-{{ $job }}
       restartPolicy: Never
-      imagePullSecrets: {{ $.Values.imagePullSecrets | toJson }}
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets: {{ . | toJson }}
+      {{- end }}
       securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000, seccompProfile: {type: RuntimeDefault}}
       containers:
         - name: {{ $job }}

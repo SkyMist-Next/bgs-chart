@@ -64,6 +64,21 @@ Optional `webAuthUrl` overrides the advertised HTTPS login base URL, including a
 forwarded port; it must end in `/bnetserver/login/`. When empty, the chart uses
 `https://<gateway.hostname>/bnetserver/login/` as before.
 
+## Private image registries
+
+To pull the BGS image from a private registry, reference existing registry Secrets
+in the release namespace:
+
+```yaml
+imagePullSecrets:
+  - name: registry-secret
+```
+
+These references apply to all five BGS Deployments (including their init
+containers) and the bootstrap/migration Jobs. The default `[]` omits the Pod
+field. The chart does not create registry Secrets. Redis, RabbitMQ, and MariaDB
+image settings are configured separately.
+
 ## Discovery contracts
 
 The runtime MariaDB User has `skymist.io/database-role=bgs-runtime`; the migration
