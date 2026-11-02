@@ -4,6 +4,7 @@ image:
   tag: ''
   pullPolicy: IfNotPresent
 imagePullSecrets: []
+webAuthUrl: ''
 database:
   create: false
   mariaDbRef: skymist-db

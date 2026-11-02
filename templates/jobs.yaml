@@ -41,7 +41,7 @@ subjects:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $name }}-{{ $job }}-{{ toJson $.Values | sha256sum | trunc 10 }}
+  name: {{ $name }}-{{ $job }}-{{ dict "values" $.Values "revision" $.Release.Revision | toJson | sha256sum | trunc 10 }}
 spec:
   backoffLimit: 0
   activeDeadlineSeconds: 900

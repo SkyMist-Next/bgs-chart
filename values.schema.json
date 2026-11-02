@@ -8,6 +8,10 @@
     "services"
   ],
   "properties": {
+    "webAuthUrl": {
+      "type": "string",
+      "pattern": "^$|^https://[^/]+/bnetserver/login/$"
+    },
     "image": {
       "type": "object",
       "required": [
