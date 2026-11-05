@@ -138,9 +138,14 @@
         "rest",
         "authentication",
         "account",
-        "game_utilities"
+        "game_utilities",
+        "realm"
       ],
       "properties": {
+        "realm": {
+          "type": "object",
+          "properties": {"replicas": {"type": "integer", "minimum": 1}}
+        },
         "frontend": {
           "type": "object",
           "properties": {

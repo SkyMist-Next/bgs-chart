@@ -1,0 +1,15 @@
+# Opt-in Redis/Sentinel startup persistence for operator-managed Realm ACLs.
+# The operator creates this ConfigMap before Redis starts. Set the same name in
+# operator-chart bgs.redis.aclConfigMap. Do not mount individual files via subPath.
+redis-ha:
+  redis:
+    customArgs: [/data/conf/redis.conf, --aclfile, /realm-acl/redis.acl]
+    extraVolumeMounts:
+      - {name: realm-acl, mountPath: /realm-acl, readOnly: true}
+  sentinel:
+    customArgs: [/data/conf/sentinel.conf, --aclfile, /realm-acl/sentinel.acl]
+    extraVolumeMounts:
+      - {name: realm-acl, mountPath: /realm-acl, readOnly: true}
+  extraVolumes:
+    - name: realm-acl
+      configMap: {name: skymist-realm-redis-acl}

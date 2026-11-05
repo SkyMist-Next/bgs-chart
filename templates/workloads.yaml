@@ -46,7 +46,7 @@ spec:
         - name: bgs
           image: {{ include "bgs.image" $ | quote }}
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
-          args: {{ if eq $service "frontend" }}[node, frontend.js]{{ else if eq $service "rest" }}[node, rest.js]{{ else }}[node, server.js, {{ $service }}]{{ end }}
+          args: {{ if eq $service "frontend" }}[node, frontend.js]{{ else if eq $service "rest" }}[node, rest.js]{{ else if eq $service "realm" }}[node, realm.js]{{ else }}[node, server.js, {{ $service }}]{{ end }}
           securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
           resources: {{ default $.Values.resources $settings.resources | toJson }}
           ports:

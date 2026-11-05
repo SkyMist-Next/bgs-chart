@@ -39,6 +39,7 @@ services:
   authentication: {}
   account: {}
   game_utilities: {}
+  realm: {}
 resources:
   requests:
     cpu: 100m

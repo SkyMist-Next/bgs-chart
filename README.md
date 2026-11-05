@@ -94,11 +94,22 @@ store. REDIS_PASSWORD_SECRET_NAME/KEY and
 REDIS_SENTINEL_PASSWORD_SECRET_NAME/KEY reference credentials in the same
 namespace. Passwords are never stored in the ConfigMap.
 
-Future worldserver Pods must carry `skymist.io/redis-client=<release>` and consume
-this configuration and Secrets. NetworkPolicy permits those same-namespace Pods
-to reach every Redis/Sentinel node on 6379/26379, including promoted primaries.
-These are shared credentials, not per-realm ACL identities. This chart does not
-modify skymist-operator or add Redis support to worldserver binaries.
+Worldserver Pods carry `skymist.io/redis-client=<release>`. NetworkPolicy permits
+those same-namespace Pods to reach every Redis/Sentinel node on 6379/26379,
+including promoted primaries. The connection ConfigMap references BGS's shared
+administrative credentials; worldservers receive their separate Realm identities
+from the operator.
+
+The opt-in `realm-access.values.yaml` overlay points both Redis and Sentinel at
+operator-managed ACL files. Configure the matching operator values using
+`../operator-chart/examples/realm-redis.yaml`. The operator creates the ACL
+ConfigMap after the existing bootstrap authentication Secret is available, so
+coordinate both installations before waiting for Redis readiness. No ACL state is
+stored solely on the current primary. Directory mounts preserve Kubernetes
+projection updates, and separate ACL files keep Redis/Sentinel configuration
+rewrites from duplicating user directives. The overlay leaves upstream chart
+sources and the default BGS Redis configuration intact. Native worldserver
+integration is still tracked in `../operator/LEGION-INTEGRATION.md`.
 
 ## Bootstrap, migrations and recovery
 

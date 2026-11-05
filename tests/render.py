@@ -26,7 +26,9 @@ for profile, replicas in [('local', 1), ('production', 2)]:
     assert not any(d['kind'] == 'HTTPRoute' for d in docs)
     assert next(d for d in docs if d['kind'] == 'TLSRoute')['spec']['rules'][0]['backendRefs'][0]['port'] == 8080
     deployments = [d for d in docs if d['kind'] == 'Deployment']
-    assert len(deployments) == 5
+    assert len(deployments) == 6
+    realm_worker = next(d for d in deployments if d['metadata']['name'].endswith('-realm'))
+    assert realm_worker['spec']['template']['spec']['containers'][0]['args'] == ['node', 'realm.js']
     assert all(d['spec']['replicas'] == replicas for d in deployments)
     users = [d for d in docs if d['kind'] == 'User']
     runtime = [d for d in users if d['metadata']['labels']['skymist.io/database-role'] == 'bgs-runtime']
@@ -56,7 +58,7 @@ for profile, replicas in [('local', 1), ('production', 2)]:
         assert pod['automountServiceAccountToken'] is False
         assert pod['initContainers'][0]['args'][-1] == 'wait'
         assert next(e['value'] for e in pod['containers'][0]['env'] if e['name'] == 'WEB_AUTH_URL') == 'https://bgs.example/bnetserver/login/'
-    print(f'{profile}: deterministic render, five deployments, database users, schema gate and Redis discovery passed')
+    print(f'{profile}: deterministic render, six deployments, database users, schema gate and Redis discovery passed')
 
 override = 'https://bgs.local:8443/bnetserver/login/'
 docs = list(yaml.safe_load_all(subprocess.check_output(cmd + ['--set', f'webAuthUrl={override}'])))
@@ -98,3 +100,15 @@ assert len([d for d in docs if d['kind'] == 'BackendTrafficPolicy']) == 1
 result = subprocess.run(v2 + ['--set-json', 'gateway.trustedProxyCIDRs=[]'], capture_output=True)
 assert result.returncode != 0 and b'gateway.trustedProxyCIDRs' in result.stderr
 print('Default and disabled IP bans plus optional frontend PROXY v2 validation passed')
+
+# Opt-in Realm ACLs must be loaded by both processes on every replica restart.
+docs = [d for d in yaml.safe_load_all(subprocess.check_output(cmd + ['-f', str(ROOT / 'realm-access.values.yaml')])) if d]
+redis_state = next(d for d in docs if d['kind'] == 'StatefulSet' and d['metadata']['name'].endswith('-redis-ha-server'))
+pod = redis_state['spec']['template']['spec']
+assert next(v for v in pod['volumes'] if v['name'] == 'realm-acl')['configMap']['name'] == 'skymist-realm-redis-acl'
+for name, file in [('redis', 'redis.acl'), ('sentinel', 'sentinel.acl')]:
+    container = next(c for c in pod['containers'] if c['name'] == name)
+    assert container['args'][-2:] == ['--aclfile', '/realm-acl/' + file]
+    mount = next(m for m in container['volumeMounts'] if m['name'] == 'realm-acl')
+    assert mount['readOnly'] and mount['mountPath'] == '/realm-acl' and 'subPath' not in mount
+print('Opt-in Redis and Sentinel persistent Realm ACL includes and projections passed')
