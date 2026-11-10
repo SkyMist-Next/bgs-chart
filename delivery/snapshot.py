@@ -53,3 +53,18 @@ def prepare(root, release, project=None):
     files['release.json']=(json.dumps({k:v for k,v in release.items() if k not in ('jobs','snapshot','archive')},sort_keys=True,indent=2)+'\n').encode()
     value_file.unlink()
     return files,jobs
+
+
+def stamp_attempt(files, service, release_id, attempt):
+    """Force an Argo operation even if a release renders unchanged workloads.
+
+    This stateless audit marker is deployment metadata, not chart/image input.
+    Explicit recovery retains its archived payload and gets a new attempt ID.
+    """
+    files = dict(files)
+    marker = {'apiVersion': 'v1', 'kind': 'ConfigMap',
+              'metadata': {'name': 'skymist-' + service + '-delivery-attempt',
+                           'annotations': {'argocd.argoproj.io/sync-wave': '-40'}},
+              'data': {'release': release_id, 'attempt': str(attempt)}}
+    files['chart/templates/delivery-attempt.yaml'] = yaml.safe_dump(marker, sort_keys=True).encode()
+    return files

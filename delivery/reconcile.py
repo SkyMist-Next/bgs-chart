@@ -8,7 +8,7 @@ import time
 import urllib.error
 from github import GitHub, Lease
 from model import SERVICES, compatible, enqueue, initial, observe, release, reserve, select
-from snapshot import prepare
+from snapshot import prepare, stamp_attempt
 from verify import evidence, diagnostics, kube
 
 
@@ -90,6 +90,7 @@ def main():
             state=reserve(state,target,int(time.time()),recovery=bool(args.recover))
             state['releases'][target['id']]['jobs']=jobs
             save() # Durable reservation BEFORE deploy mutation.
+            files=stamp_attempt(files,service,target['id'],str(state['pending']['started'])+':'+lease.owner)
             parent=gh.ref(repo,'deploy')
             revision=gh.commit(repo,'deploy',parent,files,'Deploy '+service+' '+target['id'],replace=True)
             state['pending']['revision']=revision
