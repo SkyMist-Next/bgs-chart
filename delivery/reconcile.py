@@ -12,6 +12,12 @@ from snapshot import prepare
 from verify import evidence, diagnostics, kube
 
 
+def report(message):
+    print(message)
+    if os.environ.get('GITHUB_STEP_SUMMARY'):
+        with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as output:output.write(message+'\n\n')
+
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--recover',default='');args=parser.parse_args()
     root=Path(__file__).resolve().parents[1]
@@ -31,10 +37,10 @@ def main():
         updated=enqueue(state,value)
         if updated!=state:state=updated;save()
     if not state['enabled']:
-        print('Delivery disabled pending reviewed baseline adoption');return
+        report('Delivery disabled pending reviewed baseline adoption');return
     lease=Lease(gh,os.environ.get('GITHUB_RUN_ID','local')+':'+os.environ.get('GITHUB_RUN_ATTEMPT','1'))
     if not lease.acquire():
-        print('Another service is promoting; periodic reconciliation will retry');return
+        report('Waiting: another service is promoting; periodic reconciliation will retry');return
     try:
         if not state['pending']:
             selected=select(state,chart,head)
@@ -46,14 +52,14 @@ def main():
                     state['releases'][proposed['id']]={**proposed,'archive':archive,'jobs':jobs}
                     save()
             if state['paused'] and not args.recover:
-                print('Promotion paused; explicit recovery IDs:',sorted(state['releases']));return
+                report('Promotion paused: '+state['paused']['reason']+'. Select a recorded release ID through explicit recovery.');return
             if args.recover:
                 if args.recover not in state['releases']:raise ValueError('Recovery requires a recorded immutable release ID')
                 target=state['releases'][args.recover]
             else:
                 selected=select(state,chart,head)
                 if not selected:
-                    print('Waiting for matching application/chart contract');return
+                    report('Waiting for matching application/chart contract');return
                 target=state['releases'][release(selected,sha)['id']]
             deployed={};healthy={}
             for other in SERVICES:
@@ -66,9 +72,9 @@ def main():
                     except (subprocess.SubprocessError,KeyError,ValueError):pass
             ok,reason=compatible(target,deployed,healthy)
             if not ok:
-                print(reason);return
+                report('Waiting: '+reason);return
             if not args.recover and target['id']==state['lastSuccessful']:
-                print('Release already accepted');return
+                report('Release already accepted: '+state['lastSuccessful']);return
             # A recovery uses the original exact snapshot contents, not today's chart.
             if args.recover:
                 files={}
@@ -78,6 +84,9 @@ def main():
                     if item['type']=='blob':files[item['path']]=gh.file(repo,item['path'],target.get('archive',target.get('snapshot')))
                 jobs=target['jobs']
             else:files,jobs=prepare(root,target,project=kube('-n','argocd','get','appproject','skymist-'+service,'-o','json')['spec'])
+            if not args.recover and (gh.ref(repo,branch)!=sha or gh.ref('SkyMist-Next/'+service,'master' if service=='bgs' else 'main')!=head):
+                print('Sources advanced while preparing snapshot; wait for the current candidate')
+                return
             state=reserve(state,target,int(time.time()),recovery=bool(args.recover))
             state['releases'][target['id']]['jobs']=jobs
             save() # Durable reservation BEFORE deploy mutation.
@@ -113,7 +122,7 @@ def main():
             save()
             if state['pending']:time.sleep(10)
         if state['paused']:raise RuntimeError('Promotion paused: '+state['paused']['reason'])
-        print('Accepted release:',state['lastSuccessful'])
+        report('Accepted release: '+state['lastSuccessful'])
         # Wake dependants; scheduled reconciliation remains the reliable fallback.
         for other in SERVICES:
             if other!=service:
