@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## Pull request merging
+
+Always merge pull requests using **Rebase and merge** (`gh pr merge --rebase`).
+
 ## Agent skills
 
 ### Issue tracker
