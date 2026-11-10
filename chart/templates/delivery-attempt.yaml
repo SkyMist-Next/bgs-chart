@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  attempt: 1794327217:42851955544:1
+  release: 70da5c6e6e4f0177390a33491b3e44673c96d1317c549c85e542c8a8ab72e65d
+kind: ConfigMap
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: '-40'
+  name: skymist-bgs-delivery-attempt

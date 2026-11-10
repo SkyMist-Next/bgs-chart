@@ -1,7 +1,7 @@
 {
-  "chartSha": "f6bbac2848ddb776cfcaa9c3a142bc657a011d56",
+  "chartSha": "8aac545a0616128282498f0f663b9a13408324f5",
   "deploymentContract": 1,
-  "id": "73022fa0d0df4fa139a1a3b141892c83cbe750d9be012b4fe2c6b74e416e84ca",
+  "id": "70da5c6e6e4f0177390a33491b3e44673c96d1317c549c85e542c8a8ab72e65d",
   "image": "registry.neomatik.eu/skymist/bgs@sha256:076c83d25bcf258cf010bcc763b9e0a1bf5fa66efc0c743968eda1a8e3034aa1",
   "provides": {
     "account-schema": 1,
