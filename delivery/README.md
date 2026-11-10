@@ -41,7 +41,7 @@ namespace; it cannot read Secrets, execute commands, or modify workloads.
 Image builders have no Kubernetes token. Argo uses read-only repository deploy
 keys. The GitHub App token is restricted to the enumerated repositories and
 requested Contents/Actions permissions. Publication credentials are environment
-secrets and are removed at job completion. Slack is not configured.
+secrets and are removed at job completion. Applications opt out of inherited Slack notifications.
 
 The verifier requires the expected Argo revision to be Synced/Healthy with a
 successful operation, exact workload image digests, complete hooks, readiness,
@@ -60,7 +60,7 @@ use the exact archived chart and application image and repeat compatibility and
 health gates. A failed recovery remains paused. Do not edit `deploy` by hand or
 clear `paused` to bypass recovery checks.
 
-The six working copies must carry identical delivery controller modules; copy
+The three chart working copies must carry identical delivery controller modules; copy
 changes from operator-chart and run each chart's `delivery/check.py`. Application
 and chart branches have independent tests. Operator fixture pins are recorded in
 `operator/delivery/siblings.json`; these are test dependencies, not deployment
