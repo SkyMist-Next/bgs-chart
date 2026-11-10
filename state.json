@@ -59,15 +59,12 @@
   },
   "enabled": true,
   "lastSuccessful": "aff0deb8d2ee4e07ed594022bffafeb7bc23e29b49b5ea55b40fa9ee9d254e19",
-  "paused": null,
-  "pending": {
-    "deadline": 1794327236,
-    "healthySince": null,
-    "lastObserved": 1794325538,
-    "release": "73022fa0d0df4fa139a1a3b141892c83cbe750d9be012b4fe2c6b74e416e84ca",
-    "revision": "05e878ee2ff4a5576cd7f8493269e4e909554fee",
-    "started": 1794325436
+  "paused": {
+    "at": 1794325555,
+    "reason": "Promotion controller failed; inspect workflow diagnostics",
+    "release": "73022fa0d0df4fa139a1a3b141892c83cbe750d9be012b4fe2c6b74e416e84ca"
   },
+  "pending": null,
   "releases": {
     "73022fa0d0df4fa139a1a3b141892c83cbe750d9be012b4fe2c6b74e416e84ca": {
       "archive": "198771afaaa072e7371894d578533857c3f687e1",
