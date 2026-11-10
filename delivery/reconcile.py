@@ -9,7 +9,7 @@ import urllib.error
 from github import GitHub, Lease
 from model import SERVICES, compatible, enqueue, initial, observe, release, reserve, select
 from snapshot import prepare
-from verify import evidence, diagnostics
+from verify import evidence, diagnostics, kube
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
             if selected:
                 proposed=release(selected,sha)
                 if proposed['id'] not in state['releases']:
-                    files,jobs=prepare(root,proposed)
+                    files,jobs=prepare(root,proposed,project=kube('-n','argocd','get','appproject','skymist-'+service,'-o','json')['spec'])
                     archive=gh.commit(repo,'delivery-releases',gh.ref(repo,'delivery-releases'),files,'Archive '+proposed['id'],replace=True)
                     state['releases'][proposed['id']]={**proposed,'archive':archive,'jobs':jobs}
                     save()
@@ -77,7 +77,7 @@ def main():
                 for item in tree['tree']:
                     if item['type']=='blob':files[item['path']]=gh.file(repo,item['path'],target.get('archive',target.get('snapshot')))
                 jobs=target['jobs']
-            else:files,jobs=prepare(root,target)
+            else:files,jobs=prepare(root,target,project=kube('-n','argocd','get','appproject','skymist-'+service,'-o','json')['spec'])
             state=reserve(state,target,int(time.time()),recovery=bool(args.recover))
             state['releases'][target['id']]['jobs']=jobs
             save() # Durable reservation BEFORE deploy mutation.

@@ -8,7 +8,15 @@ PROTECTED={'StatefulSet','PersistentVolumeClaim','Secret','MariaDB','Database','
 RELEASE={'operator':'operator','bgs':'skymist','admin':'admin'}
 
 
-def prepare(root, release):
+def validate_project(docs, policy):
+    allowed={(r['group'],r['kind']) for r in policy.get('namespaceResourceWhitelist',[])+policy.get('clusterResourceWhitelist',[])}
+    for resource in docs:
+        version=resource['apiVersion'];group=version.split('/')[0] if '/' in version else ''
+        if (group,resource['kind']) not in allowed:
+            raise ValueError('Resource kind is not permitted in AppProject: '+group+'/'+resource['kind'])
+
+
+def prepare(root, release, project=None):
     root=Path(root); service=release['service']
     values=yaml.safe_load((root/'delivery/environments/skymist.yaml').read_text())
     values['gitops']={'enabled':True}
@@ -24,6 +32,8 @@ def prepare(root, release):
     if raw!=subprocess.check_output(command):raise ValueError('Nondeterministic chart rendering')
     docs=[d for d in yaml.safe_load_all(raw) if d]
     if not docs:raise ValueError('Empty chart output')
+    validate_project(docs,json.loads((root/'delivery/project.json').read_text()))
+    if project is not None:validate_project(docs,project)
     jobs=[]
     for d in docs:
         metadata=d['metadata'];ann=metadata.get('annotations') or {}

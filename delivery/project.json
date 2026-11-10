@@ -1,0 +1,119 @@
+{
+  "description": "SkyMist bgs delivery only",
+  "sourceRepos": [
+    "ssh://git@github.com/SkyMist-Next/bgs-chart.git"
+  ],
+  "destinations": [
+    {
+      "server": "https://kubernetes.default.svc",
+      "namespace": "skymist"
+    }
+  ],
+  "clusterResourceWhitelist": [],
+  "namespaceResourceWhitelist": [
+    {
+      "group": "",
+      "kind": "Service"
+    },
+    {
+      "group": "",
+      "kind": "ConfigMap"
+    },
+    {
+      "group": "",
+      "kind": "Secret"
+    },
+    {
+      "group": "",
+      "kind": "ServiceAccount"
+    },
+    {
+      "group": "",
+      "kind": "PersistentVolumeClaim"
+    },
+    {
+      "group": "apps",
+      "kind": "Deployment"
+    },
+    {
+      "group": "apps",
+      "kind": "StatefulSet"
+    },
+    {
+      "group": "batch",
+      "kind": "Job"
+    },
+    {
+      "group": "rbac.authorization.k8s.io",
+      "kind": "Role"
+    },
+    {
+      "group": "rbac.authorization.k8s.io",
+      "kind": "RoleBinding"
+    },
+    {
+      "group": "networking.k8s.io",
+      "kind": "NetworkPolicy"
+    },
+    {
+      "group": "k8s.mariadb.com",
+      "kind": "MariaDB"
+    },
+    {
+      "group": "k8s.mariadb.com",
+      "kind": "Database"
+    },
+    {
+      "group": "k8s.mariadb.com",
+      "kind": "User"
+    },
+    {
+      "group": "k8s.mariadb.com",
+      "kind": "Grant"
+    },
+    {
+      "group": "rabbitmq.com",
+      "kind": "RabbitmqCluster"
+    },
+    {
+      "group": "cert-manager.io",
+      "kind": "Certificate"
+    },
+    {
+      "group": "cert-manager.io",
+      "kind": "Issuer"
+    },
+    {
+      "group": "gateway.networking.k8s.io",
+      "kind": "Gateway"
+    },
+    {
+      "group": "gateway.networking.k8s.io",
+      "kind": "TCPRoute"
+    },
+    {
+      "group": "gateway.networking.k8s.io",
+      "kind": "HTTPRoute"
+    },
+    {
+      "group": "gateway.networking.k8s.io",
+      "kind": "TLSRoute"
+    },
+    {
+      "group": "gateway.envoyproxy.io",
+      "kind": "ClientTrafficPolicy"
+    },
+    {
+      "group": "gateway.envoyproxy.io",
+      "kind": "BackendTrafficPolicy"
+    },
+    {
+      "group": "cilium.io",
+      "kind": "CiliumNetworkPolicy"
+    },
+    {
+      "group": "policy",
+      "kind": "PodDisruptionBudget"
+    }
+  ]
+}

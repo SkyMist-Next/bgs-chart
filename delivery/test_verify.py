@@ -15,3 +15,11 @@ class VerificationTests(unittest.TestCase):
         app={'status':{'sync':{'revision':'r','status':'Synced'},'health':{'status':'Healthy'},'operationState':{'phase':'Succeeded','syncResult':{'revision':'r'}},'resources':[]}}
         with patch('verify.kube',return_value=app),self.assertRaisesRegex(ValueError,'no Deployment'):
             evidence('bgs','r','repo@sha256:abc',[])
+
+class ProjectTests(unittest.TestCase):
+    def test_missing_kind_fails_before_deployment(self):
+        from snapshot import validate_project
+        docs=[{'apiVersion':'policy/v1','kind':'PodDisruptionBudget'}]
+        with self.assertRaisesRegex(ValueError,'not permitted'):
+            validate_project(docs,{'namespaceResourceWhitelist':[]})
+        validate_project(docs,{'namespaceResourceWhitelist':[{'group':'policy','kind':'PodDisruptionBudget'}]})
