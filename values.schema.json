@@ -144,7 +144,12 @@
       "properties": {
         "realm": {
           "type": "object",
-          "properties": {"replicas": {"type": "integer", "minimum": 1}}
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
         },
         "frontend": {
           "type": "object",
@@ -235,6 +240,20 @@
       "properties": {
         "ipBansEnabled": {
           "type": "boolean"
+        }
+      }
+    },
+    "authenticator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "existingSecret"
+      ],
+      "properties": {
+        "existingSecret": {
+          "type": "string",
+          "maxLength": 253,
+          "pattern": "^$|^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$"
         }
       }
     }

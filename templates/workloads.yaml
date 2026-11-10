@@ -63,6 +63,9 @@ spec:
             - configMapRef: {name: {{ $name }}-redis-connection}
           env:
             - {name: NODE_ENV, value: production}
+            {{- if and (eq $service "rest") $.Values.authenticator.existingSecret }}
+            - {name: BGS_AUTHENTICATOR_KEY_FILE, value: /etc/authenticator/key}
+            {{- end }}
             - {name: BGS_REALM_DATABASE, value: {{ $.Values.realmDirectory.database | quote }}}
             - {name: BGS_IP_BANS_ENABLED, value: {{ $.Values.security.ipBansEnabled | quote }}}
             - {name: BGS_PROXY_PROTOCOL, value: {{ ternary $.Values.gateway.proxyProtocol "off" (eq $service "frontend") | quote }}}
@@ -92,11 +95,18 @@ spec:
                 secretKeyRef: {name: {{ $name }}-rabbitmq-default-user, key: password}
             {{- end }}
           volumeMounts:
+            {{- if and (eq $service "rest") $.Values.authenticator.existingSecret }}
+            - {name: authenticator, mountPath: /etc/authenticator, readOnly: true}
+            {{- end }}
             - {name: config, mountPath: /usr/src/app/config, readOnly: true}
             {{- if or (eq $service "frontend") (eq $service "rest") }}
             - {name: certs, mountPath: /usr/src/app/certs, readOnly: true}
             {{- end }}
       volumes:
+        {{- if and (eq $service "rest") $.Values.authenticator.existingSecret }}
+        - name: authenticator
+          secret: {secretName: {{ $.Values.authenticator.existingSecret | quote }}, defaultMode: 0440, items: [{key: key, path: key}]}
+        {{- end }}
         - name: config
           configMap: {name: {{ $name }}-config}
         {{- if or (eq $service "frontend") (eq $service "rest") }}

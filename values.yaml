@@ -87,3 +87,8 @@ certificate:
 
 realmDirectory:
   database: skymist_operator
+
+# The same retained Secret must be selected by BGS REST and admin in this namespace.
+# key contains exactly 32 random bytes, never text/hex. Other workloads do not mount it.
+authenticator:
+  existingSecret: ''

@@ -112,3 +112,13 @@ for name, file in [('redis', 'redis.acl'), ('sentinel', 'sentinel.acl')]:
     mount = next(m for m in container['volumeMounts'] if m['name'] == 'realm-acl')
     assert mount['readOnly'] and mount['mountPath'] == '/realm-acl' and 'subPath' not in mount
 print('Opt-in Redis and Sentinel persistent Realm ACL includes and projections passed')
+
+protected = [d for d in yaml.safe_load_all(subprocess.check_output(cmd + ['--set', 'authenticator.existingSecret=authenticator-key'])) if d]
+for deployment in [d for d in protected if d['kind'] == 'Deployment']:
+    pod = deployment['spec']['template']['spec']
+    volumes = [v for v in pod['volumes'] if v['name'] == 'authenticator']
+    assert bool(volumes) == deployment['metadata']['name'].endswith('-rest')
+    if volumes:
+        assert volumes[0]['secret'] == {'secretName': 'authenticator-key', 'defaultMode': 0o440, 'items': [{'key': 'key', 'path': 'key'}]}
+        assert next(m for m in pod['containers'][0]['volumeMounts'] if m['name'] == 'authenticator')['readOnly']
+print('Authenticator key is projected into REST only')
