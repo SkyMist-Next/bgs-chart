@@ -3,6 +3,11 @@
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: MariaDB
 metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
   name: {{ include "bgs.dbref" . }}
 spec:
   image: {{ .Values.database.image }}
@@ -21,6 +26,11 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Database
 metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
   name: {{ $name }}
 spec:
   mariaDbRef: {name: {{ include "bgs.dbref" . }}}
@@ -33,6 +43,11 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: User
 metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
   name: {{ $name }}-{{ $role }}
   labels:
     skymist.io/database-role: bgs-{{ $role }}
@@ -48,6 +63,11 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
 metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-9"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
   name: {{ $name }}-{{ $role }}
 spec:
   mariaDbRef: {name: {{ include "bgs.dbref" $ }}}
@@ -64,6 +84,11 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
 metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-9"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
   name: {{ $name }}-realm-directory
 spec:
   mariaDbRef: {name: {{ include "bgs.dbref" . }}}

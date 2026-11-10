@@ -1,0 +1,55 @@
+name: Compatible service delivery
+on:
+  push:
+    branches: [master]
+  repository_dispatch:
+    types: [application-built, prerequisite-deployed]
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Recorded immutable release ID for retry, forward fix or reviewed rollback
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: service-promotion
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: github.ref == 'refs/heads/master'
+    runs-on: bgs-chart
+    container: ubuntu:24.04
+    environment: skymist-delivery
+    timeout-minutes: 38
+    steps:
+      - run: apt-get update -qq && apt-get install -y --no-install-recommends git ca-certificates
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {fetch-depth: 0, persist-credentials: false}
+      - run: bash delivery/install-tools.sh
+      - uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b
+        id: app
+        with:
+          app-id: ${{ vars.DELIVERY_APP_ID }}
+          private-key: ${{ secrets.DELIVERY_APP_PRIVATE_KEY }}
+          owner: SkyMist-Next
+          repositories: admin,bgs,operator,admin-chart,bgs-chart,operator-chart
+          permission-contents: write
+          permission-actions: read
+      - name: Validate charts and promotion contracts
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: python delivery/check.py
+      - name: Configure read-only verification access
+        run: python delivery/kubeconfig.py
+      - name: Reconcile or recover explicit release
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          RECOVERY_RELEASE: ${{ inputs.release }}
+        run: python delivery/reconcile.py --recover "$RECOVERY_RELEASE"
+      - if: always()
+        run: |
+          echo 'Delivery result: ${{ job.status }}. Durable pause and accepted release are recorded on delivery-state; Argo reports synchronization.' >> "$GITHUB_STEP_SUMMARY"
+          rm -f /tmp/delivery-kubeconfig

@@ -1,5 +1,6 @@
 fullnameOverride: ''
 image:
+  digest: ""
   repository: ''
   tag: ''
   pullPolicy: IfNotPresent
@@ -60,11 +61,16 @@ redis-ha:
     authKey: sentinel-password
     quorum: 2
   redis:
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+      argocd.argoproj.io/sync-wave: "-5"
     masterGroupName: bgs
     config:
       appendonly: 'yes'
       min-replicas-to-write: 1
   persistentVolume:
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
     enabled: true
     size: 5Gi
   networkPolicy:
@@ -87,3 +93,7 @@ certificate:
 
 realmDirectory:
   database: skymist_operator
+
+# Argo ownership and ordered, repeatable migration hooks.
+gitops:
+  enabled: false
