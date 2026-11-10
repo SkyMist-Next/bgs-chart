@@ -26,9 +26,18 @@ class GitHub:
     def api(self, path, data=None, method=None, raw=False):
         req = urllib.request.Request('https://api.github.com/' + path, data=None if data is None else json.dumps(data).encode(), method=method,
             headers={'Authorization':'Bearer '+self.token, 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28', 'Content-Type':'application/json'})
-        with urllib.request.build_opener(SafeRedirect).open(req, timeout=30) as response:
-            value=response.read()
-            return value if raw else json.loads(value) if value else None
+        # GET and a repeated non-force ref PATCH are idempotent, including when
+        # the first update succeeded but its response was lost. Never retry a
+        # conflict or an authorization failure, and never force the ref.
+        for attempt in range(3):
+            try:
+                with urllib.request.build_opener(SafeRedirect).open(req, timeout=30) as response:
+                    value=response.read()
+                    return value if raw else json.loads(value) if value else None
+            except urllib.error.HTTPError as error:
+                if req.get_method() not in ('GET','PATCH') or error.code not in (500,502,503,504) or attempt == 2:
+                    raise
+                time.sleep(2 ** attempt)
 
     def ref(self, repo, branch):
         try: return self.api(f'repos/{repo}/git/ref/heads/{branch}')['object']['sha']
