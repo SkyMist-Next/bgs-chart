@@ -67,7 +67,7 @@
         "lastTransitionTime": "2026-11-10T16:14:28Z",
         "status": "Healthy"
       },
-      "message": "waiting for healthy state of k8s.mariadb.com/Grant/skymist-bgs-migrator and 22 more resources",
+      "message": "waiting for completion of hook batch/Job/skymist-bgs-migrate",
       "phase": "Running",
       "resources": [
         {
@@ -317,9 +317,9 @@
         },
         {
           "group": "k8s.mariadb.com",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "User",
-          "message": "user.k8s.mariadb.com/skymist-bgs-runtime unchanged",
+          "message": "Created",
           "name": "skymist-bgs-runtime",
           "namespace": "skymist",
           "status": "Synced",
@@ -328,14 +328,209 @@
         },
         {
           "group": "k8s.mariadb.com",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "User",
-          "message": "user.k8s.mariadb.com/skymist-bgs-migrator unchanged",
+          "message": "Created",
           "name": "skymist-bgs-migrator",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
           "version": "v1alpha1"
+        },
+        {
+          "group": "k8s.mariadb.com",
+          "hookPhase": "Succeeded",
+          "kind": "Grant",
+          "message": "Created",
+          "name": "skymist-bgs-realm-directory",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1alpha1"
+        },
+        {
+          "group": "k8s.mariadb.com",
+          "hookPhase": "Succeeded",
+          "kind": "Grant",
+          "message": "Created",
+          "name": "skymist-bgs-runtime",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1alpha1"
+        },
+        {
+          "group": "k8s.mariadb.com",
+          "hookPhase": "Succeeded",
+          "kind": "Grant",
+          "message": "Created",
+          "name": "skymist-bgs-migrator",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1alpha1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Succeeded",
+          "images": [
+            "public.ecr.aws/docker/library/redis:8.8.0-alpine",
+            "public.ecr.aws/docker/library/redis:8.8.0-alpine",
+            "public.ecr.aws/docker/library/redis:8.8.0-alpine"
+          ],
+          "kind": "StatefulSet",
+          "message": "statefulset rolling update complete 3 pods at revision skymist-redis-ha-server-64b98765f5...",
+          "name": "skymist-redis-ha-server",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "networking.k8s.io",
+          "hookPhase": "Succeeded",
+          "kind": "NetworkPolicy",
+          "message": "networkpolicy.networking.k8s.io/skymist-redis-ha-network-policy unchanged",
+          "name": "skymist-redis-ha-network-policy",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Succeeded",
+          "kind": "ServiceAccount",
+          "message": "serviceaccount/skymist-redis-ha unchanged",
+          "name": "skymist-redis-ha",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Succeeded",
+          "kind": "ConfigMap",
+          "message": "configmap/skymist-redis-ha-health-configmap unchanged",
+          "name": "skymist-redis-ha-health-configmap",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Succeeded",
+          "kind": "ConfigMap",
+          "message": "configmap/skymist-redis-ha-configmap unchanged",
+          "name": "skymist-redis-ha-configmap",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "rbac.authorization.k8s.io",
+          "hookPhase": "Succeeded",
+          "kind": "Role",
+          "message": "role.rbac.authorization.k8s.io/skymist-redis-ha reconciled. role.rbac.authorization.k8s.io/skymist-redis-ha unchanged",
+          "name": "skymist-redis-ha",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "rbac.authorization.k8s.io",
+          "hookPhase": "Succeeded",
+          "kind": "RoleBinding",
+          "message": "rolebinding.rbac.authorization.k8s.io/skymist-redis-ha reconciled. rolebinding.rbac.authorization.k8s.io/skymist-redis-ha unchanged",
+          "name": "skymist-redis-ha",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Succeeded",
+          "kind": "Service",
+          "message": "service/skymist-redis-ha-announce-2 unchanged",
+          "name": "skymist-redis-ha-announce-2",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Succeeded",
+          "kind": "Service",
+          "message": "service/skymist-redis-ha-announce-0 unchanged",
+          "name": "skymist-redis-ha-announce-0",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Succeeded",
+          "kind": "Service",
+          "message": "service/skymist-redis-ha unchanged",
+          "name": "skymist-redis-ha",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Succeeded",
+          "kind": "Service",
+          "message": "service/skymist-redis-ha-announce-1 unchanged",
+          "name": "skymist-redis-ha-announce-1",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "batch",
+          "hookPhase": "Running",
+          "hookType": "Sync",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:076c83d25bcf258cf010bcc763b9e0a1bf5fa66efc0c743968eda1a8e3034aa1"
+          ],
+          "kind": "Job",
+          "message": "job.batch/skymist-bgs-migrate created",
+          "name": "skymist-bgs-migrate",
+          "namespace": "skymist",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "gateway.networking.k8s.io",
+          "hookPhase": "Succeeded",
+          "kind": "TCPRoute",
+          "message": "tcproute.gateway.networking.k8s.io/skymist-bgs-frontend configured",
+          "name": "skymist-bgs-frontend",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "gateway.networking.k8s.io",
+          "hookPhase": "Succeeded",
+          "kind": "TLSRoute",
+          "message": "tlsroute.gateway.networking.k8s.io/skymist-bgs-rest configured",
+          "name": "skymist-bgs-rest",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
         }
       ],
       "sync": {
@@ -368,7 +563,7 @@
   "pending": {
     "deadline": 1794329017,
     "healthySince": null,
-    "lastObserved": 1794327284,
+    "lastObserved": 1794327298,
     "release": "70da5c6e6e4f0177390a33491b3e44673c96d1317c549c85e542c8a8ab72e65d",
     "revision": "d27bb01dc4db0663c35fc6c130b019f845431b7c",
     "started": 1794327217
