@@ -60,7 +60,7 @@ metadata:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
   {{- end }}
-  name: {{ $name }}-{{ $job }}-{{ dict "values" $.Values "revision" $.Release.Revision | toJson | sha256sum | trunc 10 }}
+  name: {{ $name }}-{{ $job }}{{ if not $.Values.gitops.enabled }}-{{ dict "values" $.Values "revision" $.Release.Revision | toJson | sha256sum | trunc 10 }}{{ end }}
 spec:
   backoffLimit: 0
   activeDeadlineSeconds: 900
