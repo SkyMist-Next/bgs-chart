@@ -62,81 +62,14 @@
   "paused": {
     "at": 1794318446,
     "diagnostics": {
-      "conditions": [
-        {
-          "lastTransitionTime": "2026-11-10T13:47:15Z",
-          "message": "Failed last sync attempt to [7f3e5613badb02aa8e6d2ca3b6c6bc0e2521bd28]: one or more synchronization tasks are not valid",
-          "type": "SyncError"
-        }
-      ],
+      "conditions": [],
       "health": {
         "lastTransitionTime": "2026-11-10T13:47:15Z",
         "status": "Healthy"
       },
-      "message": "one or more synchronization tasks are not valid",
-      "phase": "Failed",
-      "resources": [
-        {
-          "group": "policy",
-          "kind": "PodDisruptionBudget",
-          "message": "resource policy:PodDisruptionBudget is not permitted in project skymist-bgs",
-          "name": "skymist-bgs-authentication",
-          "namespace": "skymist",
-          "status": "SyncFailed",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "policy",
-          "kind": "PodDisruptionBudget",
-          "message": "resource policy:PodDisruptionBudget is not permitted in project skymist-bgs",
-          "name": "skymist-bgs-account",
-          "namespace": "skymist",
-          "status": "SyncFailed",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "policy",
-          "kind": "PodDisruptionBudget",
-          "message": "resource policy:PodDisruptionBudget is not permitted in project skymist-bgs",
-          "name": "skymist-bgs-realm",
-          "namespace": "skymist",
-          "status": "SyncFailed",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "policy",
-          "kind": "PodDisruptionBudget",
-          "message": "resource policy:PodDisruptionBudget is not permitted in project skymist-bgs",
-          "name": "skymist-bgs-game-utilities",
-          "namespace": "skymist",
-          "status": "SyncFailed",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "policy",
-          "kind": "PodDisruptionBudget",
-          "message": "resource policy:PodDisruptionBudget is not permitted in project skymist-bgs",
-          "name": "skymist-bgs-rest",
-          "namespace": "skymist",
-          "status": "SyncFailed",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "policy",
-          "kind": "PodDisruptionBudget",
-          "message": "resource policy:PodDisruptionBudget is not permitted in project skymist-bgs",
-          "name": "skymist-bgs-frontend",
-          "namespace": "skymist",
-          "status": "SyncFailed",
-          "syncPhase": "Sync",
-          "version": "v1"
-        }
-      ],
+      "message": null,
+      "phase": "Running",
+      "resources": [],
       "sync": {
         "comparedTo": {
           "destination": {
@@ -157,7 +90,7 @@
             "targetRevision": "deploy"
           }
         },
-        "revision": "7f3e5613badb02aa8e6d2ca3b6c6bc0e2521bd28",
+        "revision": "804788ae80b36e4c6e80ecd7b76c09399549626c",
         "status": "OutOfSync"
       }
     },
@@ -167,7 +100,7 @@
   "pending": {
     "deadline": 1794320529,
     "healthySince": null,
-    "lastObserved": 1794319008,
+    "lastObserved": 1794319021,
     "release": "aff0deb8d2ee4e07ed594022bffafeb7bc23e29b49b5ea55b40fa9ee9d254e19",
     "revision": "804788ae80b36e4c6e80ecd7b76c09399549626c",
     "started": 1794318729
