@@ -164,7 +164,14 @@
     "reason": "Argo operation Failed",
     "release": "aff0deb8d2ee4e07ed594022bffafeb7bc23e29b49b5ea55b40fa9ee9d254e19"
   },
-  "pending": null,
+  "pending": {
+    "deadline": 1794320529,
+    "healthySince": null,
+    "lastObserved": null,
+    "release": "aff0deb8d2ee4e07ed594022bffafeb7bc23e29b49b5ea55b40fa9ee9d254e19",
+    "revision": "7f3e5613badb02aa8e6d2ca3b6c6bc0e2521bd28",
+    "started": 1794318729
+  },
   "releases": {
     "aff0deb8d2ee4e07ed594022bffafeb7bc23e29b49b5ea55b40fa9ee9d254e19": {
       "chartSha": "27cbb052db68544b531629cb1a35c2a86432b869",
