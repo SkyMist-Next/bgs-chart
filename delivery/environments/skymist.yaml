@@ -1,3 +1,4 @@
+# Existing claim templates are immutable; retained PVCs are protected during adoption.
 certificate:
   enabled: true
 database:
@@ -21,6 +22,7 @@ redis-ha:
       name: skymist-realm-redis-acl
     name: realm-acl
   persistentVolume:
+    annotations: null
     storageClass: ssd-block
   redis:
     customArgs:

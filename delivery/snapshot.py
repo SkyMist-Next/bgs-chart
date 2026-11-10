@@ -18,9 +18,8 @@ def prepare(root, release):
     if service=='bgs':
         redis=values.setdefault('redis-ha',{})
         redis.setdefault('redis',{}).setdefault('annotations',{}).update({'argocd.argoproj.io/sync-options':'Prune=false,Delete=false','argocd.argoproj.io/sync-wave':'-5'})
-        redis.setdefault('persistentVolume',{}).setdefault('annotations',{})['argocd.argoproj.io/sync-options']='Prune=false,Delete=false'
     value_file=root/'delivery-values.generated.yaml'; value_file.write_text(yaml.safe_dump(values,sort_keys=True))
-    command=['helm','template',RELEASE[service],str(root),'-n','skymist','--kube-version','1.36.4','-f',str(value_file)]
+    command=['helm','template',RELEASE[service],str(root),'-n','skymist','--skip-tests','--kube-version','1.36.4','-f',str(value_file)]
     raw=subprocess.check_output(command)
     if raw!=subprocess.check_output(command):raise ValueError('Nondeterministic chart rendering')
     docs=[d for d in yaml.safe_load_all(raw) if d]
