@@ -23,3 +23,9 @@ class ProjectTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'not permitted'):
             validate_project(docs,{'namespaceResourceWhitelist':[]})
         validate_project(docs,{'namespaceResourceWhitelist':[{'group':'policy','kind':'PodDisruptionBudget'}]})
+
+class HealthResponseTests(unittest.TestCase):
+    def test_successful_empty_health_body_is_supported(self):
+        from verify import kube
+        with patch('verify.subprocess.check_output',return_value=b''):
+            self.assertEqual(kube('get','--raw','/ready',raw=True),b'')

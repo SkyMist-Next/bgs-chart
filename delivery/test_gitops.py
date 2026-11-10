@@ -17,6 +17,7 @@ class GitOpsChartTests(unittest.TestCase):
     def test_protection_and_order(self):
         docs=self.render();jobs=[d for d in docs if d['kind']=='Job']
         self.assertTrue(jobs)
+        self.assertEqual({j["metadata"]["name"] for j in jobs},{"skymist-bgs-bootstrap","skymist-bgs-migrate"})
         for d in jobs:
             a=d['metadata']['annotations']
             self.assertIn(a['argocd.argoproj.io/hook'],('PreSync','Sync'))

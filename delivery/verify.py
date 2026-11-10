@@ -43,8 +43,13 @@ def evidence(service, revision, image, jobs):
             # API proxy GET needs no execution or credentials from the workload.
             port='https:'+pod['metadata']['name']+':8443' if service=='admin' else pod['metadata']['name']+(':'+str(8080 if service=='operator' else 8081))
             kube('get','--raw',f'/api/v1/namespaces/skymist/pods/{port}/proxy/ready',raw=True)
-    for name in jobs:
+    # Argo's exact-revision operation is authoritative for hook names. Helm
+    # versions can coalesce subchart defaults differently in legacy hashed names.
+    actual_jobs=[r['name'] for r in result.get('resources',[]) if r['kind']=='Job' and r.get('hookType') in ('Sync','PreSync')]
+    if len(actual_jobs)!=len(jobs) or not actual_jobs:return False,None
+    for name in actual_jobs:
         job=kube('-n','skymist','get','job',name,'-o','json')
+        if not name.endswith('-crds') and not any(c['image']==image for c in job['spec']['template']['spec']['containers']):return False,None
         conditions={c['type']:c['status'] for c in job.get('status',{}).get('conditions',[])}
         if conditions.get('Failed')=='True':return False,'Job failed: '+name
         if conditions.get('Complete')!='True':return False,None
