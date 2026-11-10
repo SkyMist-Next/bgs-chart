@@ -1,0 +1,125 @@
+{{- $name := include "bgs.name" . }}
+{{- range $service, $settings := .Values.services }}
+{{- $component := $service | replace "_" "-" }}
+{{- $replicas := int (dig "replicas" $.Values.replicas $settings) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  {{- end }}
+  name: {{ $name }}-{{ $component }}
+spec:
+  replicas: {{ $replicas }}
+  selector:
+    matchLabels: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
+  strategy:
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ $.Release.Name | quote }}
+        app.kubernetes.io/component: {{ $component }}
+        skymist.io/redis-client: {{ $.Release.Name | quote }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") $ | sha256sum }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets: {{ . | toJson }}
+      {{- end }}
+      nodeSelector: {{ default $.Values.nodeSelector $settings.nodeSelector | toJson }}
+      affinity: {{ default $.Values.affinity $settings.affinity | toJson }}
+      tolerations: {{ default $.Values.tolerations $settings.tolerations | toJson }}
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000, {{ if or (eq $service "frontend") (eq $service "rest") }}fsGroup: 1000, {{ end }}seccompProfile: {type: RuntimeDefault}}
+      initContainers:
+        - name: schema
+          image: {{ include "bgs.image" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args: [node, scripts/deploy.js, wait]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources: {{ $.Values.resources | toJson }}
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-runtime, key: url}
+      containers:
+        - name: bgs
+          image: {{ include "bgs.image" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args: {{ if eq $service "frontend" }}[node, frontend.js]{{ else if eq $service "rest" }}[node, rest.js]{{ else if eq $service "realm" }}[node, realm.js]{{ else }}[node, server.js, {{ $service }}]{{ end }}
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources: {{ default $.Values.resources $settings.resources | toJson }}
+          ports:
+            - {name: health, containerPort: 8081}
+            {{- if eq $service "frontend" }}
+            - {name: frontend, containerPort: 1119}
+            {{- else if eq $service "rest" }}
+            - {name: https, containerPort: 8080}
+            {{- end }}
+          startupProbe: {httpGet: {path: /ready, port: health}, periodSeconds: 5, failureThreshold: 24}
+          readinessProbe: {httpGet: {path: /ready, port: health}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /alive, port: health}, periodSeconds: 10}
+          envFrom:
+            - configMapRef: {name: {{ $name }}-redis-connection}
+          env:
+            - {name: NODE_ENV, value: production}
+            - {name: BGS_REALM_DATABASE, value: {{ $.Values.realmDirectory.database | quote }}}
+            - {name: BGS_IP_BANS_ENABLED, value: {{ $.Values.security.ipBansEnabled | quote }}}
+            - {name: BGS_PROXY_PROTOCOL, value: {{ ternary $.Values.gateway.proxyProtocol "off" (eq $service "frontend") | quote }}}
+            - {name: BGS_TRUSTED_PROXY_CIDRS, value: {{ $.Values.gateway.trustedProxyCIDRs | toJson | quote }}}
+            - {name: BGS_TRUSTED_HTTP_PROXY_CIDRS, value: {{ "[]" | quote }}}
+            - {name: BGS_HEALTH_PORT, value: "8081"}
+            - {name: BGS_TLS_SERVER_NAME, value: {{ $.Values.gateway.hostname | quote }}}
+            - {name: BGS_TLS, value: {{ or (eq $service "frontend") (eq $service "rest") | quote }}}
+            - {name: BGS_PORT, value: {{ ternary "8080" "1119" (eq $service "rest") | quote }}}
+            - {name: WEB_AUTH_URL, value: {{ default (printf "https://%s/bnetserver/login/" (required "gateway.hostname required" $.Values.gateway.hostname)) $.Values.webAuthUrl | quote }}}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-runtime, key: url}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: {{ $.Release.Name }}-redis-auth, key: password}
+            - name: REDIS_SENTINEL_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: {{ $.Release.Name }}-redis-auth, key: sentinel-password}
+            {{- if ne $service "rest" }}
+            - {name: RABBITMQ_SERVICE_NAME, value: {{ $name }}-rabbitmq}
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-rabbitmq-default-user, key: username}
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: {{ $name }}-rabbitmq-default-user, key: password}
+            {{- end }}
+          volumeMounts:
+            - {name: config, mountPath: /usr/src/app/config, readOnly: true}
+            {{- if or (eq $service "frontend") (eq $service "rest") }}
+            - {name: certs, mountPath: /usr/src/app/certs, readOnly: true}
+            {{- end }}
+      volumes:
+        - name: config
+          configMap: {name: {{ $name }}-config}
+        {{- if or (eq $service "frontend") (eq $service "rest") }}
+        - name: certs
+          secret: {secretName: {{ include "bgs.tlsSecret" (merge (dict "endpoint" (ternary "restSecret" "frontendSecret" (eq $service "rest"))) $) | quote }}, defaultMode: 0440, items: [{key: tls.crt, path: tls.crt}, {key: tls.key, path: tls.key}]}
+        {{- end }}
+{{- if gt $replicas 1 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-40"
+  {{- end }}
+  name: {{ $name }}-{{ $component }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
+{{- end }}
+{{- end }}

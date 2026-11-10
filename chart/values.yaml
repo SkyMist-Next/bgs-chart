@@ -1,0 +1,99 @@
+fullnameOverride: ''
+image:
+  digest: ""
+  repository: ''
+  tag: ''
+  pullPolicy: IfNotPresent
+# Existing registry Secrets in the release namespace, used by BGS Pods and Jobs.
+# Example: [{name: registry-secret}]
+imagePullSecrets: []
+webAuthUrl: ''
+database:
+  create: false
+  mariaDbRef: skymist-db
+  host: skymist-db-primary
+  name: bgs
+  image: mariadb:11.4.10
+  size: 5Gi
+  storageClass: ''
+security:
+  ipBansEnabled: true
+gateway:
+  proxyProtocol: 'off'
+  trustedProxyCIDRs: []
+  trustedHttpProxyCIDRs: []
+  namespaceSelector: {kubernetes.io/metadata.name: envoy-gateway-system}
+  podSelector: {app.kubernetes.io/name: envoy}
+  className: ''
+  hostname: ''
+  frontendSecret: ''
+  restSecret: ''
+rabbitmq:
+  replicas: 3
+  image: rabbitmq:4.3.6-management
+  size: 10Gi
+  storageClass: ''
+replicas: 2
+services:
+  frontend: {}
+  rest: {}
+  authentication: {}
+  account: {}
+  game_utilities: {}
+  realm: {}
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+nodeSelector: {}
+tolerations: []
+affinity: {}
+redis-ha:
+  replicas: 3
+  auth: true
+  existingSecret: '{{ .Release.Name }}-redis-auth'
+  authKey: password
+  sentinel:
+    auth: true
+    existingSecret: '{{ .Release.Name }}-redis-auth'
+    authKey: sentinel-password
+    quorum: 2
+  redis:
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+      argocd.argoproj.io/sync-wave: "-5"
+    masterGroupName: bgs
+    config:
+      appendonly: 'yes'
+      min-replicas-to-write: 1
+  persistentVolume:
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    enabled: true
+    size: 5Gi
+  networkPolicy:
+    enabled: true
+    ingressRules:
+    - selectors:
+      - podSelector:
+          matchLabels:
+            skymist.io/redis-client: '{{ .Release.Name }}'
+
+# Issue a leaf certificate using an existing same-namespace Issuer.
+certificate:
+  enabled: false
+  # Empty uses <BGS fullname>-tls for the generated Secret.
+  secretName: ''
+  issuerRef:
+    name: bgs-ca
+    kind: Issuer
+    group: cert-manager.io
+
+realmDirectory:
+  database: skymist_operator
+
+# Argo ownership and ordered, repeatable migration hooks.
+gitops:
+  enabled: false
