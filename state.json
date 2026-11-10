@@ -64,11 +64,11 @@
     "diagnostics": {
       "conditions": [],
       "health": {
-        "lastTransitionTime": "2026-11-10T13:47:15Z",
-        "status": "Healthy"
+        "lastTransitionTime": "2026-11-10T13:57:42Z",
+        "status": "Progressing"
       },
-      "message": "waiting for completion of hook batch/Job/skymist-bgs-migrate-5c99a4ac83",
-      "phase": "Running",
+      "message": "successfully synced (all tasks run)",
+      "phase": "Succeeded",
       "resources": [
         {
           "group": "policy",
@@ -487,13 +487,13 @@
         },
         {
           "group": "batch",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "hookType": "Sync",
           "images": [
             "registry.neomatik.eu/skymist/bgs@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98"
           ],
           "kind": "Job",
-          "message": "job.batch/skymist-bgs-migrate-5c99a4ac83 created",
+          "message": "Reached expected number of succeeded pods",
           "name": "skymist-bgs-migrate-5c99a4ac83",
           "namespace": "skymist",
           "syncPhase": "Sync",
@@ -516,6 +516,90 @@
           "kind": "TLSRoute",
           "message": "tlsroute.gateway.networking.k8s.io/skymist-bgs-rest configured. Warning: resource tlsroutes/skymist-bgs-rest is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
           "name": "skymist-bgs-rest",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-frontend configured. Warning: resource deployments/skymist-bgs-frontend is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+          "name": "skymist-bgs-frontend",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-game-utilities configured. Warning: resource deployments/skymist-bgs-game-utilities is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+          "name": "skymist-bgs-game-utilities",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-authentication configured. Warning: resource deployments/skymist-bgs-authentication is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+          "name": "skymist-bgs-authentication",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-realm configured. Warning: resource deployments/skymist-bgs-realm is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+          "name": "skymist-bgs-realm",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-rest configured. Warning: resource deployments/skymist-bgs-rest is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+          "name": "skymist-bgs-rest",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-account configured. Warning: resource deployments/skymist-bgs-account is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+          "name": "skymist-bgs-account",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
@@ -543,7 +627,7 @@
           }
         },
         "revision": "804788ae80b36e4c6e80ecd7b76c09399549626c",
-        "status": "OutOfSync"
+        "status": "Synced"
       }
     },
     "reason": "Argo operation Failed",
@@ -552,7 +636,7 @@
   "pending": {
     "deadline": 1794320529,
     "healthySince": null,
-    "lastObserved": 1794319061,
+    "lastObserved": 1794319074,
     "release": "aff0deb8d2ee4e07ed594022bffafeb7bc23e29b49b5ea55b40fa9ee9d254e19",
     "revision": "804788ae80b36e4c6e80ecd7b76c09399549626c",
     "started": 1794318729
