@@ -1,0 +1,51 @@
+certificate:
+  enabled: true
+database:
+  create: false
+  host: skymist-db-primary
+  mariaDbRef: skymist-db
+gateway:
+  className: public-dual-stack
+  hostname: bnet.neomatik.eu
+gitops:
+  enabled: true
+image:
+  digest: sha256:076c83d25bcf258cf010bcc763b9e0a1bf5fa66efc0c743968eda1a8e3034aa1
+  repository: registry.neomatik.eu/skymist/bgs
+  tag: ''
+imagePullSecrets:
+- name: registry-secret
+rabbitmq:
+  replicas: 3
+  storageClass: ssd-block
+redis-ha:
+  extraVolumes:
+  - configMap:
+      name: skymist-realm-redis-acl
+    name: realm-acl
+  persistentVolume:
+    annotations: null
+    storageClass: ssd-block
+  redis:
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+      argocd.argoproj.io/sync-wave: '-5'
+    customArgs:
+    - /data/conf/redis.conf
+    - --aclfile
+    - /realm-acl/redis.acl
+    extraVolumeMounts:
+    - mountPath: /realm-acl
+      name: realm-acl
+      readOnly: true
+  replicas: 3
+  sentinel:
+    customArgs:
+    - /data/conf/sentinel.conf
+    - --aclfile
+    - /realm-acl/sentinel.acl
+    extraVolumeMounts:
+    - mountPath: /realm-acl
+      name: realm-acl
+      readOnly: true
+replicas: 2

@@ -1,0 +1,38 @@
+{{- $name := include "bgs.name" . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-40"
+  {{- end }}
+  name: {{ $name }}-config
+data:
+  database.json: '{"production":{"use_env_variable":"DATABASE_URL","dialect":"mysql","dialectOptions":{"bigNumberStrings":true},"syncOnStart":false}}'
+  winston.json: '{"console":true,"level":"debug","json":true}'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-40"
+  {{- end }}
+  name: {{ $name }}-redis-connection
+  labels:
+    skymist.io/connection-type: bgs-redis
+    {{- include "bgs.labels" . | nindent 4 }}
+data:
+  {{- $redis := index .Values "redis-ha" }}
+  {{- $redisName := default (printf "%s-redis-ha" .Release.Name) $redis.fullnameOverride }}
+  {{- $sentinels := list }}
+  {{- range $i := until (int $redis.replicas) }}
+  {{- $sentinels = append $sentinels (dict "host" (printf "%s-announce-%d.%s.svc.cluster.local" $redisName $i $.Release.Namespace) "port" 26379) }}
+  {{- end }}
+  REDIS_SENTINELS: {{ $sentinels | toJson | quote }}
+  REDIS_MASTER_NAME: {{ $redis.redis.masterGroupName | quote }}
+  REDIS_DB: "0"
+  REDIS_PASSWORD_SECRET_NAME: {{ .Release.Name }}-redis-auth
+  REDIS_PASSWORD_SECRET_KEY: password
+  REDIS_SENTINEL_PASSWORD_SECRET_NAME: {{ .Release.Name }}-redis-auth
+  REDIS_SENTINEL_PASSWORD_SECRET_KEY: sentinel-password

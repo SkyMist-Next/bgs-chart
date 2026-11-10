@@ -1,0 +1,101 @@
+{{- $name := include "bgs.name" . }}
+{{- if .Values.database.create }}
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
+  name: {{ include "bgs.dbref" . }}
+spec:
+  image: {{ .Values.database.image }}
+  replicas: 1
+  rootPasswordSecretKeyRef:
+    name: {{ $name }}-db-root
+    key: password
+    generate: true
+  storage:
+    size: {{ .Values.database.size }}
+    {{- with .Values.database.storageClass }}
+    storageClassName: {{ . }}
+    {{- end }}
+---
+{{- end }}
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
+  name: {{ $name }}
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" . }}}
+  name: {{ .Values.database.name | quote }}
+  characterSet: utf8mb4
+  collate: utf8mb4_unicode_ci
+  cleanupPolicy: Skip
+{{ range $role := list "runtime" "migrator" }}
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: User
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
+  name: {{ $name }}-{{ $role }}
+  labels:
+    skymist.io/database-role: bgs-{{ $role }}
+    {{- include "bgs.labels" $ | nindent 4 }}
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" $ }}}
+  name: {{ $name }}-{{ $role }}
+  host: "%"
+  maxUserConnections: {{ ternary 100 10 (eq $role "runtime") }}
+  passwordSecretKeyRef: {name: {{ $name }}-{{ $role }}, key: password}
+  cleanupPolicy: Skip
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-9"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
+  name: {{ $name }}-{{ $role }}
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" $ }}}
+  username: {{ $name }}-{{ $role }}
+  host: "%"
+  database: {{ $.Values.database.name | quote }}
+  table: "*"
+  grantOption: false
+  privileges: {{ if eq $role "runtime" }}[SELECT, INSERT, UPDATE, DELETE]{{ else }}[ALL PRIVILEGES]{{ end }}
+  cleanupPolicy: Skip
+{{ end }}
+
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-9"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
+  name: {{ $name }}-realm-directory
+spec:
+  mariaDbRef: {name: {{ include "bgs.dbref" . }}}
+  username: {{ $name }}-runtime
+  host: "%"
+  database: {{ .Values.realmDirectory.database | quote }}
+  table: realmlist
+  privileges: [SELECT]
+  grantOption: false
+  cleanupPolicy: Skip

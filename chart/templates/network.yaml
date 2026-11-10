@@ -1,0 +1,74 @@
+{{- $name := include "bgs.name" . }}
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+  {{- end }}
+  name: {{ $name }}-rabbitmq
+spec:
+  replicas: {{ .Values.rabbitmq.replicas }}
+  image: {{ .Values.rabbitmq.image }}
+  persistence:
+    storage: {{ .Values.rabbitmq.size }}
+    {{- with .Values.rabbitmq.storageClass }}
+    storageClassName: {{ . }}
+    {{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-40"
+  {{- end }}
+  name: {{ $name }}
+spec:
+  gatewayClassName: {{ required "gateway.className required" .Values.gateway.className }}
+  infrastructure:
+    labels:
+      scope: public
+  listeners:
+    - name: frontend
+      protocol: TCP
+      port: 1119
+      allowedRoutes: {namespaces: {from: Same}}
+    - name: rest
+      protocol: TLS
+      port: 443
+      hostname: {{ .Values.gateway.hostname | quote }}
+      tls:
+        mode: Passthrough
+      allowedRoutes: {namespaces: {from: Same}}
+{{ range $component := list "frontend" "rest" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  {{- if $.Values.gitops.enabled }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-40"
+  {{- end }}
+  name: {{ $name }}-{{ $component }}
+spec:
+  type: ClusterIP
+  selector: {app.kubernetes.io/instance: {{ $.Release.Name | quote }}, app.kubernetes.io/component: {{ $component }}}
+  ports:
+    - {name: service, port: {{ ternary 1119 8080 (eq $component "frontend") }}, targetPort: {{ ternary "frontend" "https" (eq $component "frontend") }}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: {{ ternary "TCPRoute" "TLSRoute" (eq $component "frontend") }}
+metadata:
+  name: {{ $name }}-{{ $component }}
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+spec:
+  parentRefs: [{name: {{ $name }}, sectionName: {{ $component }}}]
+  {{- if eq $component "rest" }}
+  hostnames: [{{ $.Values.gateway.hostname | quote }}]
+  {{- end }}
+  rules:
+    - backendRefs: [{name: {{ $name }}-{{ $component }}, port: {{ ternary 1119 8080 (eq $component "frontend") }}}]
+{{ end }}
