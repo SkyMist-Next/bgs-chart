@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Offline chart contract checks; run with Python + PyYAML and Helm."""
+import json
 import pathlib
 import subprocess
 import yaml
@@ -26,9 +27,37 @@ for profile, replicas in [('local', 1), ('production', 2)]:
     assert not any(d['kind'] == 'HTTPRoute' for d in docs)
     assert next(d for d in docs if d['kind'] == 'TLSRoute')['spec']['rules'][0]['backendRefs'][0]['port'] == 8080
     deployments = [d for d in docs if d['kind'] == 'Deployment']
-    assert len(deployments) == 6
+    assert len(deployments) == 7
     realm_worker = next(d for d in deployments if d['metadata']['name'].endswith('-realm'))
     assert realm_worker['spec']['template']['spec']['containers'][0]['args'] == ['node', 'realm.js']
+    social_worker = next(d for d in deployments if d['metadata']['name'].endswith('-social'))
+    social_pod = social_worker['spec']['template']['spec']
+    social_container = social_pod['containers'][0]
+    assert social_container['args'] == ['node', 'social.js']
+    assert social_container['ports'] == [{'name': 'health', 'containerPort': 8081}]
+    assert social_container['resources'] == realm_worker['spec']['template']['spec']['containers'][0]['resources']
+    assert social_container['readinessProbe']['httpGet'] == {'path': '/ready', 'port': 'health'}
+    assert social_container['startupProbe']['httpGet'] == {'path': '/ready', 'port': 'health'}
+    assert social_container['livenessProbe']['httpGet'] == {'path': '/alive', 'port': 'health'}
+    assert social_worker['spec']['strategy']['rollingUpdate'] == {'maxUnavailable': 0, 'maxSurge': 1}
+    assert social_pod['terminationGracePeriodSeconds'] == 30
+    assert social_pod['securityContext']['runAsNonRoot'] and social_pod['securityContext']['seccompProfile']['type'] == 'RuntimeDefault'
+    assert social_container['securityContext'] == {'allowPrivilegeEscalation': False, 'capabilities': {'drop': ['ALL']}}
+    realm_env = {e['name']: e for e in realm_worker['spec']['template']['spec']['containers'][0]['env']}
+    social_env = {e['name']: e for e in social_container['env']}
+    for key in ['RABBITMQ_SERVICE_NAME', 'RABBITMQ_USERNAME', 'RABBITMQ_PASSWORD', 'DATABASE_URL', 'REDIS_PASSWORD', 'REDIS_SENTINEL_PASSWORD']:
+        assert social_env[key] == realm_env[key]
+    labels = social_worker['spec']['template']['metadata']['labels']
+    assert labels['skymist.io/redis-client'] == 'contract'
+    assert social_worker['spec']['selector']['matchLabels'].items() <= labels.items()
+    assert not any(d['kind'] == 'Service' and d['spec'].get('selector') and
+                   all(labels.get(k) == v for k, v in d['spec']['selector'].items()) for d in docs)
+    assert {d['metadata']['name'] for d in docs if d['kind'] in ('TCPRoute', 'TLSRoute')} == {'contract-bgs-frontend', 'contract-bgs-rest'}
+    social_pdb = [d for d in docs if d['kind'] == 'PodDisruptionBudget' and d['metadata']['name'] == social_worker['metadata']['name']]
+    assert len(social_pdb) == int(replicas > 1)
+    if social_pdb:
+        assert social_pdb[0]['spec']['selector'] == social_worker['spec']['selector']
+        assert social_pdb[0]['spec']['maxUnavailable'] == 1
     assert all(d['spec']['replicas'] == replicas for d in deployments)
     users = [d for d in docs if d['kind'] == 'User']
     runtime = [d for d in users if d['metadata']['labels']['skymist.io/database-role'] == 'bgs-runtime']
@@ -58,7 +87,21 @@ for profile, replicas in [('local', 1), ('production', 2)]:
         assert pod['automountServiceAccountToken'] is False
         assert pod['initContainers'][0]['args'][-1] == 'wait'
         assert next(e['value'] for e in pod['containers'][0]['env'] if e['name'] == 'WEB_AUTH_URL') == 'https://bgs.example/bnetserver/login/'
-    print(f'{profile}: deterministic render, six deployments, database users, schema gate and Redis discovery passed')
+    print(f'{profile}: deterministic render, seven deployments, private social worker, database users, schema gate and Redis discovery passed')
+
+social_resources = {'requests': {'cpu': '250m', 'memory': '256Mi'}, 'limits': {'memory': '768Mi'}}
+for social_replicas in [1, 3]:
+    custom = cmd + ['--set', f'services.social.replicas={social_replicas}', '--set-json', 'services.social.resources=' + json.dumps(social_resources)]
+    docs = [d for d in yaml.safe_load_all(subprocess.check_output(custom)) if d]
+    worker = next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'] == 'contract-bgs-social')
+    assert worker['spec']['replicas'] == social_replicas
+    assert worker['spec']['template']['spec']['containers'][0]['resources'] == social_resources
+    assert all(d['spec']['replicas'] == 2 for d in docs if d['kind'] == 'Deployment' and d != worker)
+    assert len([d for d in docs if d['kind'] == 'PodDisruptionBudget' and d['metadata']['name'] == 'contract-bgs-social']) == int(social_replicas > 1)
+for invalid in ['services.social.replicas=0', 'services.social=invalid', 'services.social=null']:
+    result = subprocess.run(cmd + ['--set', invalid], capture_output=True)
+    assert result.returncode != 0 and b'social' in result.stderr
+print('Social worker replica/resource overrides, disruption budget and values validation passed')
 
 override = 'https://bgs.local:8443/bnetserver/login/'
 docs = list(yaml.safe_load_all(subprocess.check_output(cmd + ['--set', f'webAuthUrl={override}'])))

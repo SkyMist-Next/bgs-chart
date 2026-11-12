@@ -64,6 +64,31 @@ Optional `webAuthUrl` overrides the advertised HTTPS login base URL, including a
 forwarded port; it must end in `/bnetserver/login/`. When empty, the chart uses
 `https://<gateway.hostname>/bnetserver/login/` as before.
 
+## Social worker
+
+Chart 2.3.0 adds `services.social: {}` and runs it as `node social.js` in its own
+Deployment. It combines the friends, presence, notification, user-manager,
+report and legacy-chat handlers. The worker inherits the normal schema gate,
+`/ready` and `/alive` probes on 8081, resource limits, scheduling, and replica
+settings (one local, two production). Override `services.social.replicas` or
+`services.social.resources` as needed; a worker with multiple replicas has a PDB.
+Frontend and REST remain the only public endpoints; no social Service or route
+is created, and the worker receives no TLS or authenticator private-key volume.
+
+The worker uses the existing BGS broker credentials for its ordinary client RPC
+connection and a second connection to the `skymist-realms` vhost. The authenticated
+realm path binds `skymist.realm.social.v1.requests` to the existing
+`skymist.realm.rpc.v1` exchange with routing key `social`. The operator must grant
+the BGS worker configure/write/read permission for the new queue, preserving its
+existing realm exchange and reply permissions. Existing realm credentials can
+already publish to that exchange. This chart does not own or widen operator
+broker ACLs; update that provisioning before runtime acceptance.
+
+Use an image containing `social.js` with this chart version. Rolling back the
+chart and image together removes the worker Deployment; preserve additive SQL
+state, broker data and credentials. Social broker recovery, queue ownership and
+readiness remain runtime checks beyond Helm rendering.
+
 ## Private image registries
 
 To pull the BGS image from a private registry, reference existing registry Secrets
