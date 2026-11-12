@@ -49,6 +49,13 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           RECOVERY_RELEASE: ${{ inputs.release }}
         run: python delivery/reconcile.py --recover "$RECOVERY_RELEASE"
+      # A cancelled container job may be killed before reconcile's finally runs.
+      # Release only a lease this run attempt still owns; a pending deploy resumes later.
+      - name: Release promotion lease after cancellation
+        if: cancelled()
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: python delivery/reconcile.py --release-lease
       - if: always()
         run: |
           echo 'Delivery result: ${{ job.status }}. Durable pause and accepted release are recorded on delivery-state; Argo reports synchronization.' >> "$GITHUB_STEP_SUMMARY"

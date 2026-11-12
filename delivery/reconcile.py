@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import time
 import urllib.error
@@ -18,8 +19,23 @@ def report(message):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as output:output.write(message+'\n\n')
 
 
+def interrupted(signum, frame):
+    # Cancellation must still run the finally blocks that release the lease.
+    raise SystemExit(128+signum)
+
+
+def lease_owner():
+    return os.environ.get('GITHUB_RUN_ID','local')+':'+os.environ.get('GITHUB_RUN_ATTEMPT','1')
+
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--recover',default='');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--recover',default='')
+    parser.add_argument('--release-lease',action='store_true',help='Release the promotion lease only if this run attempt owns it')
+    args=parser.parse_args()
+    if args.release_lease:
+        report('Promotion lease released' if Lease(GitHub(),lease_owner()).release_if_owner() else 'Promotion lease not owned by this run')
+        return
+    for sig in (signal.SIGTERM,signal.SIGINT):signal.signal(sig,interrupted)
     root=Path(__file__).resolve().parents[1]
     chart=json.loads((root/'delivery/manifest.json').read_text());service=chart['service'];repo='SkyMist-Next/'+service+'-chart'
     gh=GitHub();branch='master' if service=='bgs' else 'main'
@@ -38,7 +54,7 @@ def main():
         if updated!=state:state=updated;save()
     if not state['enabled']:
         report('Delivery disabled pending reviewed baseline adoption');return
-    lease=Lease(gh,os.environ.get('GITHUB_RUN_ID','local')+':'+os.environ.get('GITHUB_RUN_ATTEMPT','1'))
+    lease=Lease(gh,lease_owner())
     if not lease.acquire():
         report('Waiting: another service is promoting; periodic reconciliation will retry');return
     try:
@@ -105,20 +121,32 @@ def main():
                 state=observe(state,int(time.time()),False,'Interrupted before deploy revision was recorded; select explicit recovery')
                 save();return
             pending['revision']=revision;target['snapshot']=revision;save()
+        last_detail,last_print=None,0
         while state['pending']:
-            healthy=False;failure=None
+            healthy=False;failure=None;detail='evidence unavailable'
             try:
-                healthy,failure=evidence(service,pending['revision'],target['image'],target['jobs'])
+                healthy,failure,detail=evidence(service,pending['revision'],target['image'],target['jobs'],since=pending['started'])
                 for dependency in target['requires']:
                     _,ds=gh.state('SkyMist-Next/'+dependency+'-chart')
                     if not ds or ds['paused'] or ds['pending'] or not ds['lastSuccessful']:
+                        if healthy:detail='dependency '+dependency+' has no settled accepted release'
                         healthy=False
                         continue
                     dr=ds['releases'][ds['lastSuccessful']]
-                    healthy=healthy and evidence(dependency,dr['snapshot'],dr['image'],dr['jobs'])[0]
+                    if healthy:
+                        healthy,_,dependency_detail=evidence(dependency,dr['snapshot'],dr['image'],dr['jobs'])
+                        if not healthy:detail='dependency '+dependency+': '+dependency_detail
             except (subprocess.SubprocessError,KeyError,ValueError) as error:
-                print('Evidence unavailable:',type(error).__name__)
-            state=observe(state,int(time.time()),healthy,failure)
+                detail='evidence unavailable: '+type(error).__name__
+            now=int(time.time())
+            # Report changes, plus a heartbeat, so a long observation is visibly alive.
+            if detail!=last_detail or now-last_print>=60:
+                since=state['pending']['healthySince'] if healthy else None
+                progress=f'healthy for {now-since}s of 120s' if since else detail
+                print(time.strftime('%H:%M:%S',time.gmtime(now)),'observing:' if healthy else 'waiting:',progress,
+                      f"(deadline in {state['pending']['deadline']-now}s)",flush=True)
+                last_detail,last_print=detail,now
+            state=observe(state,now,healthy,failure)
             if state['paused']:state['paused']['diagnostics']=diagnostics(service)
             save()
             if state['pending']:time.sleep(10)

@@ -25,6 +25,9 @@ non-fast-forward state writes fail instead of overwriting another run. The
 lease exceeds the deployment deadline and cannot be stolen while any service
 has an unresolved deployment. Expired pending deployments are durably paused by
 scheduled reconciliation before a new lease is acquired.
+Cancelling a run releases the lease only if that run attempt still owns it
+(`reconcile.py --release-lease`); its pending deployment stays recorded and the
+next reconciliation resumes observing it.
 
 A new state journal starts disabled. Adopt and verify operator, BGS, then admin
 before setting `enabled: true`. Existing Helm records remain recovery evidence.
@@ -48,6 +51,10 @@ successful operation, exact workload image digests, complete hooks, readiness,
 HTTP smoke checks, and current realm-directory publication after operator
 changes. Health must remain continuously sampled for two minutes within the
 30-minute deadline; an observation gap resets the stability timer.
+Hook names come from the exact-revision Argo operation. When automated
+self-heal replaces it with a partial sync of the same revision, the recorded
+hook Jobs are checked live instead and must have been created after the
+delivery attempt started. Each observation prints what it is waiting for.
 
 ## Recovery
 
