@@ -60,7 +60,14 @@
   "enabled": true,
   "lastSuccessful": "70da5c6e6e4f0177390a33491b3e44673c96d1317c549c85e542c8a8ab72e65d",
   "paused": null,
-  "pending": null,
+  "pending": {
+    "deadline": 1794489610,
+    "healthySince": null,
+    "lastObserved": null,
+    "release": "da0318209a7b52a7c056f8618d3cece6fb084aedeea034f2ec59c4948b561d36",
+    "revision": null,
+    "started": 1794487810
+  },
   "releases": {
     "70da5c6e6e4f0177390a33491b3e44673c96d1317c549c85e542c8a8ab72e65d": {
       "archive": "5283cc6cd6ec9fe3d24a3d62ef0f4ac9d05467c3",
