@@ -706,7 +706,14 @@
     "reason": "Deployment deadline exceeded",
     "release": "da0318209a7b52a7c056f8618d3cece6fb084aedeea034f2ec59c4948b561d36"
   },
-  "pending": null,
+  "pending": {
+    "deadline": 1794491966,
+    "healthySince": null,
+    "lastObserved": null,
+    "release": "385b3be6b5a0ff5fb03c3a599951f08c1e8da219098b12a267d95a9c821e0e8c",
+    "revision": null,
+    "started": 1794490166
+  },
   "releases": {
     "385b3be6b5a0ff5fb03c3a599951f08c1e8da219098b12a267d95a9c821e0e8c": {
       "archive": "d7ff98cc7fb90e92b36003249d3c4c9b58a0271d",
