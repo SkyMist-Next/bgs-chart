@@ -101,11 +101,11 @@
     "diagnostics": {
       "conditions": [],
       "health": {
-        "lastTransitionTime": "2026-11-12T13:01:51Z",
-        "status": "Degraded"
+        "lastTransitionTime": "2026-11-12T13:31:43Z",
+        "status": "Progressing"
       },
-      "message": "waiting for completion of hook batch/Job/skymist-bgs-migrate",
-      "phase": "Running",
+      "message": "successfully synced (all tasks run)",
+      "phase": "Succeeded",
       "resources": [
         {
           "group": "policy",
@@ -546,13 +546,13 @@
         },
         {
           "group": "batch",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "hookType": "Sync",
           "images": [
             "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
           ],
           "kind": "Job",
-          "message": "job.batch/skymist-bgs-migrate created",
+          "message": "Reached expected number of succeeded pods",
           "name": "skymist-bgs-migrate",
           "namespace": "skymist",
           "syncPhase": "Sync",
@@ -575,6 +575,104 @@
           "kind": "TLSRoute",
           "message": "tlsroute.gateway.networking.k8s.io/skymist-bgs-rest configured",
           "name": "skymist-bgs-rest",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-realm configured",
+          "name": "skymist-bgs-realm",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-social configured",
+          "name": "skymist-bgs-social",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-account configured",
+          "name": "skymist-bgs-account",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-frontend configured",
+          "name": "skymist-bgs-frontend",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-game-utilities configured",
+          "name": "skymist-bgs-game-utilities",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-rest configured",
+          "name": "skymist-bgs-rest",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "hookPhase": "Running",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Deployment",
+          "message": "deployment.apps/skymist-bgs-authentication configured",
+          "name": "skymist-bgs-authentication",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
@@ -602,7 +700,7 @@
           }
         },
         "revision": "d4d4d32de5ad03b2ce84841eec2dd3261e5be45b",
-        "status": "OutOfSync"
+        "status": "Synced"
       }
     },
     "reason": "Deployment deadline exceeded",
@@ -611,7 +709,7 @@
   "pending": {
     "deadline": 1794491966,
     "healthySince": null,
-    "lastObserved": 1794490296,
+    "lastObserved": 1794490310,
     "release": "385b3be6b5a0ff5fb03c3a599951f08c1e8da219098b12a267d95a9c821e0e8c",
     "revision": "d4d4d32de5ad03b2ce84841eec2dd3261e5be45b",
     "started": 1794490166
