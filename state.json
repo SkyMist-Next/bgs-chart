@@ -142,15 +142,15 @@
         "lastTransitionTime": "2026-11-12T13:53:15Z",
         "status": "Healthy"
       },
-      "message": "successfully synced (all tasks run)",
-      "phase": "Succeeded",
+      "message": "waiting for healthy state of k8s.mariadb.com/Database/skymist-bgs and 28 more resources",
+      "phase": "Running",
       "resources": [
         {
           "group": "policy",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "PodDisruptionBudget",
-          "message": "PodDisruptionBudget has SufficientPods",
-          "name": "skymist-bgs-frontend",
+          "message": "poddisruptionbudget.policy/skymist-bgs-account configured",
+          "name": "skymist-bgs-account",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
@@ -158,20 +158,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "PodDisruptionBudget",
-          "message": "PodDisruptionBudget has SufficientPods",
-          "name": "skymist-bgs-rest",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "policy",
-          "hookPhase": "Succeeded",
-          "kind": "PodDisruptionBudget",
-          "message": "PodDisruptionBudget has SufficientPods",
+          "message": "poddisruptionbudget.policy/skymist-bgs-game-utilities configured",
           "name": "skymist-bgs-game-utilities",
           "namespace": "skymist",
           "status": "Synced",
@@ -180,20 +169,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "PodDisruptionBudget",
-          "message": "PodDisruptionBudget has SufficientPods",
-          "name": "skymist-bgs-authentication",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "policy",
-          "hookPhase": "Succeeded",
-          "kind": "PodDisruptionBudget",
-          "message": "PodDisruptionBudget has SufficientPods",
+          "message": "poddisruptionbudget.policy/skymist-bgs-realm configured",
           "name": "skymist-bgs-realm",
           "namespace": "skymist",
           "status": "Synced",
@@ -202,10 +180,10 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "PodDisruptionBudget",
-          "message": "PodDisruptionBudget has InsufficientPods",
-          "name": "skymist-bgs-social",
+          "message": "poddisruptionbudget.policy/skymist-bgs-rest configured",
+          "name": "skymist-bgs-rest",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
@@ -213,10 +191,32 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "PodDisruptionBudget",
-          "message": "PodDisruptionBudget has SufficientPods",
-          "name": "skymist-bgs-account",
+          "message": "poddisruptionbudget.policy/skymist-bgs-authentication configured",
+          "name": "skymist-bgs-authentication",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "policy",
+          "hookPhase": "Running",
+          "kind": "PodDisruptionBudget",
+          "message": "poddisruptionbudget.policy/skymist-bgs-frontend configured",
+          "name": "skymist-bgs-frontend",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "policy",
+          "hookPhase": "Running",
+          "kind": "PodDisruptionBudget",
+          "message": "poddisruptionbudget.policy/skymist-bgs-social configured",
+          "name": "skymist-bgs-social",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
@@ -224,18 +224,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "ServiceAccount",
-          "message": "serviceaccount/skymist-bgs-migrate unchanged",
-          "name": "skymist-bgs-migrate",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "ServiceAccount",
           "message": "serviceaccount/skymist-bgs-bootstrap unchanged",
           "name": "skymist-bgs-bootstrap",
@@ -246,7 +235,18 @@
         },
         {
           "group": "",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
+          "kind": "ServiceAccount",
+          "message": "serviceaccount/skymist-bgs-migrate unchanged",
+          "name": "skymist-bgs-migrate",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "",
+          "hookPhase": "Running",
           "kind": "ConfigMap",
           "message": "configmap/skymist-bgs-redis-connection unchanged",
           "name": "skymist-bgs-redis-connection",
@@ -257,7 +257,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "ConfigMap",
           "message": "configmap/skymist-bgs-config unchanged",
           "name": "skymist-bgs-config",
@@ -268,7 +268,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "ConfigMap",
           "message": "configmap/skymist-bgs-delivery-attempt configured",
           "name": "skymist-bgs-delivery-attempt",
@@ -279,18 +279,7 @@
         },
         {
           "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Succeeded",
-          "kind": "Role",
-          "message": "role.rbac.authorization.k8s.io/skymist-bgs-bootstrap reconciled. role.rbac.authorization.k8s.io/skymist-bgs-bootstrap unchanged",
-          "name": "skymist-bgs-bootstrap",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "Role",
           "message": "role.rbac.authorization.k8s.io/skymist-bgs-migrate reconciled. role.rbac.authorization.k8s.io/skymist-bgs-migrate unchanged",
           "name": "skymist-bgs-migrate",
@@ -301,7 +290,18 @@
         },
         {
           "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
+          "kind": "Role",
+          "message": "role.rbac.authorization.k8s.io/skymist-bgs-bootstrap reconciled. role.rbac.authorization.k8s.io/skymist-bgs-bootstrap unchanged",
+          "name": "skymist-bgs-bootstrap",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "rbac.authorization.k8s.io",
+          "hookPhase": "Running",
           "kind": "RoleBinding",
           "message": "rolebinding.rbac.authorization.k8s.io/skymist-bgs-bootstrap reconciled. rolebinding.rbac.authorization.k8s.io/skymist-bgs-bootstrap unchanged",
           "name": "skymist-bgs-bootstrap",
@@ -312,7 +312,7 @@
         },
         {
           "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "RoleBinding",
           "message": "rolebinding.rbac.authorization.k8s.io/skymist-bgs-migrate reconciled. rolebinding.rbac.authorization.k8s.io/skymist-bgs-migrate unchanged",
           "name": "skymist-bgs-migrate",
@@ -323,7 +323,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "Service",
           "message": "service/skymist-bgs-rest unchanged",
           "name": "skymist-bgs-rest",
@@ -334,7 +334,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "Service",
           "message": "service/skymist-bgs-frontend unchanged",
           "name": "skymist-bgs-frontend",
@@ -345,9 +345,9 @@
         },
         {
           "group": "gateway.networking.k8s.io",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "Gateway",
-          "message": "Gateway is healthy",
+          "message": "gateway.gateway.networking.k8s.io/skymist-bgs unchanged",
           "name": "skymist-bgs",
           "namespace": "skymist",
           "status": "Synced",
@@ -356,361 +356,10 @@
         },
         {
           "group": "cert-manager.io",
-          "hookPhase": "Succeeded",
+          "hookPhase": "Running",
           "kind": "Certificate",
-          "message": "Certificate is up to date and has not expired",
+          "message": "certificate.cert-manager.io/skymist-bgs-tls unchanged",
           "name": "skymist-bgs-tls",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "k8s.mariadb.com",
-          "hookPhase": "Succeeded",
-          "kind": "Database",
-          "message": "Created",
-          "name": "skymist-bgs",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1alpha1"
-        },
-        {
-          "group": "rabbitmq.com",
-          "hookPhase": "Succeeded",
-          "kind": "RabbitmqCluster",
-          "message": "RabbitMQ cluster ready",
-          "name": "skymist-bgs-rabbitmq",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1beta1"
-        },
-        {
-          "group": "batch",
-          "hookPhase": "Succeeded",
-          "hookType": "Sync",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Job",
-          "message": "Reached expected number of succeeded pods",
-          "name": "skymist-bgs-bootstrap",
-          "namespace": "skymist",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "k8s.mariadb.com",
-          "hookPhase": "Succeeded",
-          "kind": "User",
-          "message": "Created",
-          "name": "skymist-bgs-migrator",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1alpha1"
-        },
-        {
-          "group": "k8s.mariadb.com",
-          "hookPhase": "Succeeded",
-          "kind": "User",
-          "message": "Created",
-          "name": "skymist-bgs-runtime",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1alpha1"
-        },
-        {
-          "group": "k8s.mariadb.com",
-          "hookPhase": "Succeeded",
-          "kind": "Grant",
-          "message": "Created",
-          "name": "skymist-bgs-runtime",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1alpha1"
-        },
-        {
-          "group": "k8s.mariadb.com",
-          "hookPhase": "Succeeded",
-          "kind": "Grant",
-          "message": "Created",
-          "name": "skymist-bgs-migrator",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1alpha1"
-        },
-        {
-          "group": "k8s.mariadb.com",
-          "hookPhase": "Succeeded",
-          "kind": "Grant",
-          "message": "Created",
-          "name": "skymist-bgs-realm-directory",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1alpha1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Succeeded",
-          "images": [
-            "public.ecr.aws/docker/library/redis:8.8.0-alpine",
-            "public.ecr.aws/docker/library/redis:8.8.0-alpine",
-            "public.ecr.aws/docker/library/redis:8.8.0-alpine"
-          ],
-          "kind": "StatefulSet",
-          "message": "statefulset rolling update complete 3 pods at revision skymist-redis-ha-server-64b98765f5...",
-          "name": "skymist-redis-ha-server",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "networking.k8s.io",
-          "hookPhase": "Succeeded",
-          "kind": "NetworkPolicy",
-          "message": "networkpolicy.networking.k8s.io/skymist-redis-ha-network-policy unchanged",
-          "name": "skymist-redis-ha-network-policy",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "ServiceAccount",
-          "message": "serviceaccount/skymist-redis-ha unchanged",
-          "name": "skymist-redis-ha",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "ConfigMap",
-          "message": "configmap/skymist-redis-ha-health-configmap unchanged",
-          "name": "skymist-redis-ha-health-configmap",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "ConfigMap",
-          "message": "configmap/skymist-redis-ha-configmap unchanged",
-          "name": "skymist-redis-ha-configmap",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Succeeded",
-          "kind": "Role",
-          "message": "role.rbac.authorization.k8s.io/skymist-redis-ha reconciled. role.rbac.authorization.k8s.io/skymist-redis-ha unchanged",
-          "name": "skymist-redis-ha",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Succeeded",
-          "kind": "RoleBinding",
-          "message": "rolebinding.rbac.authorization.k8s.io/skymist-redis-ha reconciled. rolebinding.rbac.authorization.k8s.io/skymist-redis-ha unchanged",
-          "name": "skymist-redis-ha",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "Service",
-          "message": "service/skymist-redis-ha unchanged",
-          "name": "skymist-redis-ha",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "Service",
-          "message": "service/skymist-redis-ha-announce-0 unchanged",
-          "name": "skymist-redis-ha-announce-0",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "Service",
-          "message": "service/skymist-redis-ha-announce-1 unchanged",
-          "name": "skymist-redis-ha-announce-1",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "",
-          "hookPhase": "Succeeded",
-          "kind": "Service",
-          "message": "service/skymist-redis-ha-announce-2 unchanged",
-          "name": "skymist-redis-ha-announce-2",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "batch",
-          "hookPhase": "Succeeded",
-          "hookType": "Sync",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Job",
-          "message": "Reached expected number of succeeded pods",
-          "name": "skymist-bgs-migrate",
-          "namespace": "skymist",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "gateway.networking.k8s.io",
-          "hookPhase": "Succeeded",
-          "kind": "TCPRoute",
-          "message": "tcproute.gateway.networking.k8s.io/skymist-bgs-frontend configured",
-          "name": "skymist-bgs-frontend",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "gateway.networking.k8s.io",
-          "hookPhase": "Succeeded",
-          "kind": "TLSRoute",
-          "message": "tlsroute.gateway.networking.k8s.io/skymist-bgs-rest configured",
-          "name": "skymist-bgs-rest",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Running",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Deployment",
-          "message": "deployment.apps/skymist-bgs-realm configured",
-          "name": "skymist-bgs-realm",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Running",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Deployment",
-          "message": "deployment.apps/skymist-bgs-social configured",
-          "name": "skymist-bgs-social",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Running",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Deployment",
-          "message": "deployment.apps/skymist-bgs-account configured",
-          "name": "skymist-bgs-account",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Running",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Deployment",
-          "message": "deployment.apps/skymist-bgs-frontend configured",
-          "name": "skymist-bgs-frontend",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Running",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Deployment",
-          "message": "deployment.apps/skymist-bgs-game-utilities configured",
-          "name": "skymist-bgs-game-utilities",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Running",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Deployment",
-          "message": "deployment.apps/skymist-bgs-rest configured",
-          "name": "skymist-bgs-rest",
-          "namespace": "skymist",
-          "status": "Synced",
-          "syncPhase": "Sync",
-          "version": "v1"
-        },
-        {
-          "group": "apps",
-          "hookPhase": "Running",
-          "images": [
-            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
-          ],
-          "kind": "Deployment",
-          "message": "deployment.apps/skymist-bgs-authentication configured",
-          "name": "skymist-bgs-authentication",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
@@ -737,7 +386,7 @@
             "targetRevision": "deploy"
           }
         },
-        "revision": "d4d4d32de5ad03b2ce84841eec2dd3261e5be45b",
+        "revision": "e09a7e9029617af2d54193f6524b21c38eb662b2",
         "status": "Synced"
       }
     },
@@ -747,7 +396,7 @@
   "pending": {
     "deadline": 1794496192,
     "healthySince": null,
-    "lastObserved": 1794494678,
+    "lastObserved": 1794494692,
     "release": "385b3be6b5a0ff5fb03c3a599951f08c1e8da219098b12a267d95a9c821e0e8c",
     "revision": "e09a7e9029617af2d54193f6524b21c38eb662b2",
     "started": 1794494392
