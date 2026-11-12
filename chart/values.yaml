@@ -41,6 +41,7 @@ services:
   account: {}
   game_utilities: {}
   realm: {}
+  social: {}
 resources:
   requests:
     cpu: 100m
