@@ -104,14 +104,14 @@
         "lastTransitionTime": "2026-11-12T13:01:51Z",
         "status": "Degraded"
       },
-      "message": "waiting for healthy state of k8s.mariadb.com/Database/skymist-bgs and 28 more resources",
+      "message": "waiting for healthy state of k8s.mariadb.com/Grant/skymist-bgs-migrator and 23 more resources",
       "phase": "Running",
       "resources": [
         {
           "group": "policy",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "PodDisruptionBudget",
-          "message": "poddisruptionbudget.policy/skymist-bgs-frontend configured",
+          "message": "PodDisruptionBudget has SufficientPods",
           "name": "skymist-bgs-frontend",
           "namespace": "skymist",
           "status": "Synced",
@@ -120,9 +120,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "PodDisruptionBudget",
-          "message": "poddisruptionbudget.policy/skymist-bgs-rest configured",
+          "message": "PodDisruptionBudget has SufficientPods",
           "name": "skymist-bgs-rest",
           "namespace": "skymist",
           "status": "Synced",
@@ -131,9 +131,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "PodDisruptionBudget",
-          "message": "poddisruptionbudget.policy/skymist-bgs-game-utilities configured",
+          "message": "PodDisruptionBudget has SufficientPods",
           "name": "skymist-bgs-game-utilities",
           "namespace": "skymist",
           "status": "Synced",
@@ -142,9 +142,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "PodDisruptionBudget",
-          "message": "poddisruptionbudget.policy/skymist-bgs-authentication configured",
+          "message": "PodDisruptionBudget has SufficientPods",
           "name": "skymist-bgs-authentication",
           "namespace": "skymist",
           "status": "Synced",
@@ -153,9 +153,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "PodDisruptionBudget",
-          "message": "poddisruptionbudget.policy/skymist-bgs-realm configured",
+          "message": "PodDisruptionBudget has SufficientPods",
           "name": "skymist-bgs-realm",
           "namespace": "skymist",
           "status": "Synced",
@@ -164,9 +164,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "PodDisruptionBudget",
-          "message": "poddisruptionbudget.policy/skymist-bgs-social configured",
+          "message": "PodDisruptionBudget has InsufficientPods",
           "name": "skymist-bgs-social",
           "namespace": "skymist",
           "status": "Synced",
@@ -175,9 +175,9 @@
         },
         {
           "group": "policy",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "PodDisruptionBudget",
-          "message": "poddisruptionbudget.policy/skymist-bgs-account configured",
+          "message": "PodDisruptionBudget has SufficientPods",
           "name": "skymist-bgs-account",
           "namespace": "skymist",
           "status": "Synced",
@@ -186,7 +186,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "ServiceAccount",
           "message": "serviceaccount/skymist-bgs-migrate unchanged",
           "name": "skymist-bgs-migrate",
@@ -197,7 +197,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "ServiceAccount",
           "message": "serviceaccount/skymist-bgs-bootstrap unchanged",
           "name": "skymist-bgs-bootstrap",
@@ -208,7 +208,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "ConfigMap",
           "message": "configmap/skymist-bgs-redis-connection unchanged",
           "name": "skymist-bgs-redis-connection",
@@ -219,7 +219,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "ConfigMap",
           "message": "configmap/skymist-bgs-config unchanged",
           "name": "skymist-bgs-config",
@@ -230,7 +230,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "ConfigMap",
           "message": "configmap/skymist-bgs-delivery-attempt configured",
           "name": "skymist-bgs-delivery-attempt",
@@ -241,7 +241,7 @@
         },
         {
           "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "Role",
           "message": "role.rbac.authorization.k8s.io/skymist-bgs-bootstrap reconciled. role.rbac.authorization.k8s.io/skymist-bgs-bootstrap unchanged",
           "name": "skymist-bgs-bootstrap",
@@ -252,7 +252,7 @@
         },
         {
           "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "Role",
           "message": "role.rbac.authorization.k8s.io/skymist-bgs-migrate reconciled. role.rbac.authorization.k8s.io/skymist-bgs-migrate unchanged",
           "name": "skymist-bgs-migrate",
@@ -263,7 +263,7 @@
         },
         {
           "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "RoleBinding",
           "message": "rolebinding.rbac.authorization.k8s.io/skymist-bgs-bootstrap reconciled. rolebinding.rbac.authorization.k8s.io/skymist-bgs-bootstrap unchanged",
           "name": "skymist-bgs-bootstrap",
@@ -274,7 +274,7 @@
         },
         {
           "group": "rbac.authorization.k8s.io",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "RoleBinding",
           "message": "rolebinding.rbac.authorization.k8s.io/skymist-bgs-migrate reconciled. rolebinding.rbac.authorization.k8s.io/skymist-bgs-migrate unchanged",
           "name": "skymist-bgs-migrate",
@@ -285,7 +285,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "Service",
           "message": "service/skymist-bgs-rest unchanged",
           "name": "skymist-bgs-rest",
@@ -296,7 +296,7 @@
         },
         {
           "group": "",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "Service",
           "message": "service/skymist-bgs-frontend unchanged",
           "name": "skymist-bgs-frontend",
@@ -307,9 +307,9 @@
         },
         {
           "group": "gateway.networking.k8s.io",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "Gateway",
-          "message": "gateway.gateway.networking.k8s.io/skymist-bgs unchanged",
+          "message": "Gateway is healthy",
           "name": "skymist-bgs",
           "namespace": "skymist",
           "status": "Synced",
@@ -318,14 +318,72 @@
         },
         {
           "group": "cert-manager.io",
-          "hookPhase": "Running",
+          "hookPhase": "Succeeded",
           "kind": "Certificate",
-          "message": "certificate.cert-manager.io/skymist-bgs-tls unchanged",
+          "message": "Certificate is up to date and has not expired",
           "name": "skymist-bgs-tls",
           "namespace": "skymist",
           "status": "Synced",
           "syncPhase": "Sync",
           "version": "v1"
+        },
+        {
+          "group": "k8s.mariadb.com",
+          "hookPhase": "Succeeded",
+          "kind": "Database",
+          "message": "Created",
+          "name": "skymist-bgs",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1alpha1"
+        },
+        {
+          "group": "rabbitmq.com",
+          "hookPhase": "Succeeded",
+          "kind": "RabbitmqCluster",
+          "message": "RabbitMQ cluster ready",
+          "name": "skymist-bgs-rabbitmq",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1beta1"
+        },
+        {
+          "group": "batch",
+          "hookPhase": "Succeeded",
+          "hookType": "Sync",
+          "images": [
+            "registry.neomatik.eu/skymist/bgs@sha256:ef98b1c3e9002aa121a654a267836671ee83edb00f42d9db3d4aab871a3bcedb"
+          ],
+          "kind": "Job",
+          "message": "Reached expected number of succeeded pods",
+          "name": "skymist-bgs-bootstrap",
+          "namespace": "skymist",
+          "syncPhase": "Sync",
+          "version": "v1"
+        },
+        {
+          "group": "k8s.mariadb.com",
+          "hookPhase": "Running",
+          "kind": "User",
+          "message": "user.k8s.mariadb.com/skymist-bgs-migrator unchanged",
+          "name": "skymist-bgs-migrator",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1alpha1"
+        },
+        {
+          "group": "k8s.mariadb.com",
+          "hookPhase": "Running",
+          "kind": "User",
+          "message": "user.k8s.mariadb.com/skymist-bgs-runtime unchanged",
+          "name": "skymist-bgs-runtime",
+          "namespace": "skymist",
+          "status": "Synced",
+          "syncPhase": "Sync",
+          "version": "v1alpha1"
         }
       ],
       "sync": {
@@ -358,7 +416,7 @@
   "pending": {
     "deadline": 1794491966,
     "healthySince": null,
-    "lastObserved": 1794490266,
+    "lastObserved": 1794490280,
     "release": "385b3be6b5a0ff5fb03c3a599951f08c1e8da219098b12a267d95a9c821e0e8c",
     "revision": "d4d4d32de5ad03b2ce84841eec2dd3261e5be45b",
     "started": 1794490166
