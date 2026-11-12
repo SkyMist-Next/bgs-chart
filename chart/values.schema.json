@@ -141,9 +141,19 @@
         "authentication",
         "account",
         "game_utilities",
-        "realm"
+        "realm",
+        "social"
       ],
       "properties": {
+        "social": {
+          "type": "object",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
         "realm": {
           "type": "object",
           "properties": {
