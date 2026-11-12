@@ -114,3 +114,9 @@ class Lease:
         return True
     def release(self):
         if self.sha:self.gh.save('SkyMist-Next/operator-chart',self.sha,{'owner':None,'expires':0},'delivery-lock')
+    def release_if_owner(self):
+        """Release after cancellation; the write is a fast-forward of the read state."""
+        sha,state=self.gh.state('SkyMist-Next/operator-chart','delivery-lock')
+        if not state or state.get('owner')!=self.owner:return False
+        self.gh.save('SkyMist-Next/operator-chart',sha,{'owner':None,'expires':0},'delivery-lock')
+        return True

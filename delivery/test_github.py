@@ -26,3 +26,22 @@ class GitStateTests(unittest.TestCase):
         request=Request('https://api.github.com/artifact',headers={'Authorization':'Bearer private'})
         result=SafeRedirect().redirect_request(request,None,302,'',{},'https://storage.example/artifact')
         self.assertIsNone(result.get_header('Authorization'))
+
+
+class LeaseReleaseTests(unittest.TestCase):
+    def lease(self, owner):
+        from github import Lease
+        class Fake:
+            saved=[]
+            def state(self, repo, branch):return 'sha1',{'owner':owner,'expires':1}
+            def save(self, repo, parent, state, branch):self.saved.append((parent,state,branch));return 'sha2'
+        gh=Fake();return gh,Lease(gh,'42:1')
+    def test_cancelled_run_releases_its_own_lease(self):
+        gh,lease=self.lease('42:1')
+        self.assertTrue(lease.release_if_owner())
+        self.assertEqual(gh.saved,[('sha1',{'owner':None,'expires':0},'delivery-lock')])
+    def test_cancelled_run_never_releases_another_owner(self):
+        for owner in ('43:1','42:2',None):
+            gh,lease=self.lease(owner)
+            self.assertFalse(lease.release_if_owner())
+            self.assertEqual(gh.saved,[])
