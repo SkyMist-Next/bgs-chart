@@ -56,6 +56,44 @@
       "service": "bgs",
       "sourceSha": "75a44241859b875fe81afbe4ccf60396aa3c737d"
     },
+    "784e3ac0f81a299ae3952bbda3e21779afccd2c5bae7b7811dba93e168b72e0e": {
+      "deploymentContract": 2,
+      "image": "registry.neomatik.eu/skymist/bgs@sha256:ff8ae3c58f1b33e3e1978c4b4821f5d5567cfdd7d34383be940a1c91aa5bf7b7",
+      "provides": {
+        "account-schema": 1,
+        "admin-request-protocol": 1,
+        "battlenet-15595": 1,
+        "battlenet-26972": 1
+      },
+      "requires": {
+        "operator": {
+          "realm-directory-schema": 4,
+          "realm-social-queue": 1
+        }
+      },
+      "runAttempt": 1,
+      "runId": 43256650550,
+      "schemaMigrations": [
+        "20180807123421-create-account.js",
+        "20180807124823-create-game-account.js",
+        "20180807151827-add-account-id.js",
+        "20180904090832-add-expansion.js",
+        "20180904090839-add-billing.js",
+        "20180909163237-add-tutorial-data.js",
+        "20261102000000-administration.js",
+        "20261103000000-realm-gameplay.js",
+        "20261103000001-immutable-game-expansion.js",
+        "20261103000002-realm-permissions.js",
+        "20261103000003-staged-realm-reservations.js",
+        "20261103000004-realm-process-permits.js",
+        "20261103000005-game-account-options.js",
+        "20261103000006-account-restoration.js",
+        "20261105000000-wow-license-identity.js",
+        "20261108000000-admin-request-list-index.js"
+      ],
+      "service": "bgs",
+      "sourceSha": "d9d2b5284f7d404803e47453bca0f0218ec79bfd"
+    },
     "977fb175dd5581f01fb13ecc1a93e45c918ce34c3418df025724b99392ed596b": {
       "deploymentContract": 2,
       "image": "registry.neomatik.eu/skymist/bgs@sha256:1c94fb56500a8744a3ad9da63d20f3da6fd523deca459062a3a635e57150ad99",
