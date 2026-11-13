@@ -4,9 +4,6 @@ database:
   create: false
   host: skymist-db-primary
   mariaDbRef: skymist-db
-gateway:
-  className: public-dual-stack
-  hostname: bnet.neomatik.eu
 gitops:
   enabled: true
 image:
@@ -15,6 +12,15 @@ image:
   tag: ''
 imagePullSecrets:
 - name: registry-secret
+publicService:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    service.cilium.io/forwarding-mode: dsr
+    service.cilium.io/lb-algorithm: maglev
+  hostname: bnet.neomatik.eu
+  labels:
+    scope: public
+  loadBalancerClass: io.cilium/bgp-control-plane
 rabbitmq:
   replicas: 3
   storageClass: ssd-block
