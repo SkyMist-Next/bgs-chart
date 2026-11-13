@@ -171,16 +171,9 @@
     }
   },
   "enabled": true,
-  "lastSuccessful": "e2049d165c22f9541bdd333b1660d95f06bacb2f294f17ff31c9bae6f215141b",
+  "lastSuccessful": "d717e3202e3ee483d57b172a7c2aa4e49a4c2175dd6cc061986182c5878c3519",
   "paused": null,
-  "pending": {
-    "deadline": 1794568357,
-    "healthySince": 1794566683,
-    "lastObserved": 1794566794,
-    "release": "d717e3202e3ee483d57b172a7c2aa4e49a4c2175dd6cc061986182c5878c3519",
-    "revision": "65b9e65cffc3f8bf3fcb9a068b0177d5e01ec2fd",
-    "started": 1794566557
-  },
+  "pending": null,
   "releases": {
     "385b3be6b5a0ff5fb03c3a599951f08c1e8da219098b12a267d95a9c821e0e8c": {
       "archive": "d7ff98cc7fb90e92b36003249d3c4c9b58a0271d",
