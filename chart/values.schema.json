@@ -4,7 +4,7 @@
   "required": [
     "image",
     "database",
-    "gateway",
+    "publicService",
     "services"
   ],
   "properties": {
@@ -55,63 +55,6 @@
         "name": {
           "type": "string",
           "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,47}$"
-        }
-      }
-    },
-    "gateway": {
-      "type": "object",
-      "required": [
-        "className",
-        "hostname",
-        "frontendSecret",
-        "restSecret"
-      ],
-      "properties": {
-        "className": {
-          "type": "string",
-          "minLength": 1
-        },
-        "hostname": {
-          "type": "string",
-          "minLength": 1
-        },
-        "frontendSecret": {
-          "type": "string"
-        },
-        "restSecret": {
-          "type": "string"
-        },
-        "trustedProxyCIDRs": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "trustedHttpProxyCIDRs": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "namespaceSelector": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "podSelector": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "proxyProtocol": {
-          "enum": [
-            "off",
-            "v2"
-          ]
         }
       }
     },
@@ -264,6 +207,42 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        }
+      }
+    },
+    "publicService": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hostname",
+        "frontendSecret",
+        "restSecret"
+      ],
+      "properties": {
+        "hostname": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frontendSecret": {
+          "type": "string"
+        },
+        "restSecret": {
+          "type": "string"
+        },
+        "loadBalancerClass": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     }
