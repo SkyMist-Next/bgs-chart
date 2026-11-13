@@ -6,7 +6,7 @@ import subprocess
 import yaml
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 for profile, replicas in [('local', 1), ('production', 2)]:
-    cmd = ['helm', 'template', 'contract', str(ROOT), '-n', 'contract', '-f', str(ROOT / f'values-{profile}.yaml'), '--set', 'image.repository=bgs,image.tag=test,gateway.hostname=bgs.example']
+    cmd = ['helm', 'template', 'contract', str(ROOT), '-n', 'contract', '-f', str(ROOT / f'values-{profile}.yaml'), '--set', 'image.repository=bgs,image.tag=test,publicService.hostname=bgs.example']
     expected_secret = 'bgs-local-tls' if profile == 'local' else 'contract-bgs-tls'
     rendered = subprocess.check_output(cmd)
     assert rendered == subprocess.check_output(cmd), 'Nondeterministic rendering'
@@ -21,11 +21,14 @@ for profile, replicas in [('local', 1), ('production', 2)]:
         assert spec['issuerRef'] == {'name': 'bgs-ca', 'kind': 'Issuer', 'group': 'cert-manager.io'}
         assert spec['privateKey']['rotationPolicy'] == 'Always' and not spec['isCA']
         assert 'server auth' in spec['usages']
-    gateway = next(d for d in docs if d['kind'] == 'Gateway')
-    assert gateway['spec']['listeners'][1]['tls'] == {'mode': 'Passthrough'}
-    assert gateway['spec']['listeners'][1]['protocol'] == 'TLS'
-    assert not any(d['kind'] == 'HTTPRoute' for d in docs)
-    assert next(d for d in docs if d['kind'] == 'TLSRoute')['spec']['rules'][0]['backendRefs'][0]['port'] == 8080
+    assert not any(d['kind'] in ('Gateway', 'HTTPRoute', 'TCPRoute', 'TLSRoute', 'BackendTrafficPolicy') for d in docs)
+    public = [d for d in docs if d['kind'] == 'Service' and d['spec'].get('type') == 'LoadBalancer']
+    assert len(public) == 1 and public[0]['metadata']['name'] == 'contract-bgs'
+    spec = public[0]['spec']
+    assert spec['externalTrafficPolicy'] == 'Cluster' and spec['ipFamilyPolicy'] == 'PreferDualStack'
+    assert spec['selector'] == {'app.kubernetes.io/instance': 'contract', 'skymist.io/public': 'true'}
+    assert {(p['port'], p['targetPort']) for p in spec['ports']} == {(1119, 'frontend'), (443, 'https')}
+    assert public[0]['metadata']['annotations']['external-dns.alpha.kubernetes.io/hostname'] == 'bgs.example'
     deployments = [d for d in docs if d['kind'] == 'Deployment']
     assert len(deployments) == 7
     realm_worker = next(d for d in deployments if d['metadata']['name'].endswith('-realm'))
@@ -52,7 +55,9 @@ for profile, replicas in [('local', 1), ('production', 2)]:
     assert social_worker['spec']['selector']['matchLabels'].items() <= labels.items()
     assert not any(d['kind'] == 'Service' and d['spec'].get('selector') and
                    all(labels.get(k) == v for k, v in d['spec']['selector'].items()) for d in docs)
-    assert {d['metadata']['name'] for d in docs if d['kind'] in ('TCPRoute', 'TLSRoute')} == {'contract-bgs-frontend', 'contract-bgs-rest'}
+    public_pods = {d['metadata']['name'] for d in deployments if d['spec']['template']['metadata']['labels'].get('skymist.io/public') == 'true'}
+    assert public_pods == {'contract-bgs-frontend', 'contract-bgs-rest'}
+    assert not any(d['kind'] == 'Service' and d['metadata']['name'] in public_pods for d in docs)
     social_pdb = [d for d in docs if d['kind'] == 'PodDisruptionBudget' and d['metadata']['name'] == social_worker['metadata']['name']]
     assert len(social_pdb) == int(replicas > 1)
     if social_pdb:
@@ -81,7 +86,7 @@ for profile, replicas in [('local', 1), ('production', 2)]:
             assert mount['readOnly'] and 'subPath' not in mount
         env = {e['name']: e.get('value') for e in pod['containers'][0]['env']}
         assert env['BGS_IP_BANS_ENABLED'] == 'true'
-        assert env['BGS_PROXY_PROTOCOL'] == 'off'
+        assert not {'BGS_PROXY_PROTOCOL', 'BGS_TRUSTED_PROXY_CIDRS', 'BGS_TRUSTED_HTTP_PROXY_CIDRS'} & env.keys()
         assert env['BGS_TLS_SERVER_NAME'] == 'bgs.example'
         assert env['BGS_TLS'] == ('true' if frontend else 'false')
         assert pod['automountServiceAccountToken'] is False
@@ -119,9 +124,9 @@ assert next(v for v in next(d for d in docs if d['kind'] == 'Deployment' and d['
 frontend = next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-frontend'))
 assert next(v for v in frontend['spec']['template']['spec']['volumes'] if v['name'] == 'certs')['secret']['secretName'] == 'custom-tls'
 for endpoint in ['frontendSecret', 'restSecret']:
-    result = subprocess.run(cmd + ['--set', f'gateway.{endpoint}=conflicting'], capture_output=True)
+    result = subprocess.run(cmd + ['--set', f'publicService.{endpoint}=conflicting'], capture_output=True)
     assert result.returncode != 0 and b'overrides must match' in result.stderr
-external = cmd + ['--set', 'certificate.enabled=false,gateway.frontendSecret=external-front,gateway.restSecret=external-rest']
+external = cmd + ['--set', 'certificate.enabled=false,publicService.frontendSecret=external-front,publicService.restSecret=external-rest']
 docs = [d for d in yaml.safe_load_all(subprocess.check_output(external)) if d]
 assert not any(d['kind'] == 'Certificate' for d in docs)
 assert next(v for v in next(d for d in docs if d['kind'] == 'Deployment' and d['metadata']['name'].endswith('-rest'))['spec']['template']['spec']['volumes'] if v['name'] == 'certs')['secret']['secretName'] == 'external-rest'
@@ -132,17 +137,22 @@ print('Managed certificate overrides, conflicting Secret rejection, and external
 
 for enabled in ['true', 'false']:
     docs = [d for d in yaml.safe_load_all(subprocess.check_output(cmd + ['--set', f'security.ipBansEnabled={enabled}'])) if d]
-    assert not any(d['kind'] == 'BackendTrafficPolicy' for d in docs)
     for d in docs:
         if d['kind'] == 'Deployment':
             env = {e['name']: e.get('value') for e in d['spec']['template']['spec']['containers'][0]['env']}
             assert env['BGS_IP_BANS_ENABLED'] == enabled
-v2 = cmd + ['--set', 'gateway.proxyProtocol=v2', '--set-json', 'gateway.trustedProxyCIDRs=["192.0.2.0/24"]']
-docs = [d for d in yaml.safe_load_all(subprocess.check_output(v2)) if d]
-assert len([d for d in docs if d['kind'] == 'BackendTrafficPolicy']) == 1
-result = subprocess.run(v2 + ['--set-json', 'gateway.trustedProxyCIDRs=[]'], capture_output=True)
-assert result.returncode != 0 and b'gateway.trustedProxyCIDRs' in result.stderr
-print('Default and disabled IP bans plus optional frontend PROXY v2 validation passed')
+print('Default and disabled IP bans passed')
+
+# Chart 3.0.0 renamed gateway.* to publicService.*; stale values must fail loudly.
+result = subprocess.run(cmd + ['--set', 'gateway.hostname=stale'], capture_output=True)
+assert result.returncode != 0 and b'renamed to publicService' in result.stderr
+custom = cmd + ['--set', 'publicService.loadBalancerClass=io.cilium/bgp-control-plane', '--set-json',
+                'publicService.labels={"scope":"public"}', '--set-json', 'publicService.annotations={"service.cilium.io/forwarding-mode":"dsr"}']
+public = next(d for d in yaml.safe_load_all(subprocess.check_output(custom)) if d and d['kind'] == 'Service' and d['spec'].get('type') == 'LoadBalancer')
+assert public['spec']['loadBalancerClass'] == 'io.cilium/bgp-control-plane' and public['metadata']['labels'] == {'scope': 'public'}
+assert public['metadata']['annotations']['service.cilium.io/forwarding-mode'] == 'dsr'
+assert public['metadata']['annotations']['external-dns.alpha.kubernetes.io/hostname'] == 'bgs.example'
+print('Public LoadBalancer Service settings and renamed-values guard passed')
 
 # Opt-in Realm ACLs must be loaded by both processes on every replica restart.
 docs = [d for d in yaml.safe_load_all(subprocess.check_output(cmd + ['-f', str(ROOT / 'realm-access.values.yaml')])) if d]

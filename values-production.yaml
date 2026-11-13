@@ -3,8 +3,6 @@ database:
   create: false
   mariaDbRef: skymist-db
   host: skymist-db-primary
-gateway:
-  className: public-dual-stack
 rabbitmq:
   replicas: 3
 redis-ha:

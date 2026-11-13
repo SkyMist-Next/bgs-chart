@@ -18,16 +18,15 @@ database:
   storageClass: ''
 security:
   ipBansEnabled: true
-gateway:
-  proxyProtocol: 'off'
-  trustedProxyCIDRs: []
-  trustedHttpProxyCIDRs: []
-  namespaceSelector: {kubernetes.io/metadata.name: envoy-gateway-system}
-  podSelector: {app.kubernetes.io/name: envoy}
-  className: ''
+# The single public LoadBalancer Service for frontend (1119) and REST (443).
+# Its load balancer must preserve client source IPs (e.g. Cilium DSR).
+publicService:
   hostname: ''
   frontendSecret: ''
   restSecret: ''
+  loadBalancerClass: ''
+  labels: {}
+  annotations: {}
 rabbitmq:
   replicas: 3
   image: rabbitmq:4.3.6-management

@@ -5,9 +5,15 @@ database:
   create: false
   host: skymist-db-primary
   mariaDbRef: skymist-db
-gateway:
-  className: public-dual-stack
+publicService:
   hostname: bnet.neomatik.eu
+  loadBalancerClass: io.cilium/bgp-control-plane
+  labels:
+    scope: public
+  annotations:
+    service.cilium.io/forwarding-mode: dsr
+    service.cilium.io/lb-algorithm: maglev
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
 image:
   repository: registry.neomatik.eu/skymist/bgs
   tag: cata-15595-39cce1323341@sha256:0824af1b0cfe42c635a6d054fad0d630da3a9d505a6f1a55ac91d1c36065ac98
