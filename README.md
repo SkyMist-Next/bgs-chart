@@ -1,7 +1,7 @@
 # BGS chart
 
-Helm 3+ / Kubernetes 1.31+, Gateway API v1 including TCPRoute, a compatible
-Gateway controller, MariaDB operator 26.10.1+, and RabbitMQ Cluster Operator
+Helm 3+ / Kubernetes 1.31+, a LoadBalancer implementation that preserves client
+source addresses, MariaDB operator 26.10.1+, and RabbitMQ Cluster Operator
 must be installed first. Operators are shared infrastructure, not dependencies
 of this release. Production certificate issuance requires cert-manager.
 
@@ -21,9 +21,9 @@ npm run test:local
 skaffold dev --kube-context minikube --cleanup=false
 ```
 
-This selects `values-local.yaml`, the existing `bgs-test-envoy` GatewayClass,
-and `webAuthUrl=https://bgs.local:8443/bnetserver/login/`. The BGS helpers discover
-and forward Envoy on localhost ports 1119/8443 and retain an opt-in test account.
+This selects `values-local.yaml` and
+`webAuthUrl=https://bgs.local:8443/bnetserver/login/`. The BGS helpers port-forward
+the frontend and REST Deployments on localhost ports 1119/8443 and retain an opt-in test account.
 See [BGS local development](../bgs/README.md#local-kubernetes-with-skaffold) for
 credentials, certificate trust, prerequisites, and cleanup behavior.
 
@@ -40,15 +40,14 @@ file requirements, direct Node configuration, and certificate renewal.
 
 The local profile runs one MariaDB, RabbitMQ, and Redis/Sentinel node. It still
 uses Sentinel discovery and migrations, with automatic schema sync disabled.
-GatewayClass `cilium` must exist and support v1 TCPRoute (Cilium 1.20+).
-For older Minikube Cilium, install a separate compatible controller such as
-Envoy Gateway and override gateway.className; see tests/VALIDATION.md. Route bgs.local to the
-Gateway address. Certificates are not generated or committed by this chart.
+The public LoadBalancer Service may stay pending without a local LoadBalancer
+implementation; the helpers' port-forwards do not need it. Otherwise route bgs.local
+to its address. Certificates are not generated or committed by this chart.
 
 ## Production
 
 Use `values-production.yaml` and supply `image.repository`, `image.tag`,
-`gateway.hostname`. Production enables `certificate.enabled` and requires the
+`publicService.hostname`. Production enables `certificate.enabled` and requires the
 `bgs-ca` Issuer in the release namespace (see [CA setup](../infra/README.md#bgs-certificate-authority)).
 The infrastructure example references skymist-db in namespace skymist; install
 the BGS release there. Verify the primary Service name
@@ -57,12 +56,15 @@ a MariaDB. The chart does not alter or own the existing MariaDB instance.
 
 Production uses two replicas of each BGS service, three RabbitMQ nodes and three
 Redis/Sentinel nodes. Redis requires distinct nodes by default. Adjust resources,
-storage classes and capacity before installation. Frontend TCPRoute passes TLS
-on 1119 to Pods; REST TLS passes through the Gateway to HTTPS port 8080 in BGS. Internal health listens on 8081.
+storage classes and capacity before installation. One public LoadBalancer Service
+`<BGS fullname>` passes frontend TLS on 1119 and REST TLS on 443 (to HTTPS port 8080)
+straight to the Pods, which terminate TLS. Internal health listens on 8081.
+Environment-specific settings go in `publicService.loadBalancerClass`, `.labels` and
+`.annotations`; the chart always adds the external-dns hostname annotation.
 
 Optional `webAuthUrl` overrides the advertised HTTPS login base URL, including a
 forwarded port; it must end in `/bnetserver/login/`. When empty, the chart uses
-`https://<gateway.hostname>/bnetserver/login/` as before.
+`https://<publicService.hostname>/bnetserver/login/` as before.
 
 ## Social worker
 
@@ -178,17 +180,17 @@ helm lint . -f values-local.yaml --set image.repository=bgs,image.tag=local
 
 Integration acceptance includes fresh/repeated migrations, account data retention,
 concurrent migration exclusion, competing worker consumers, Redis failover,
-worldserver-shaped consumer access, Gateway TLS and graceful shutdown. Native
+worldserver-shaped consumer access, public endpoint TLS and graceful shutdown. Native
 client acceptance is a separate check. Worker quorum queues prevent broadcast to
 every replica, but do not promise exactly-once delivery across broker failures.
 
 With `certificate.enabled=true`, the chart creates one Certificate for
-`gateway.hostname` in both the subject CN and DNS SAN, issued by `certificate.issuerRef` (default `bgs-ca`, kind
+`publicService.hostname` in both the subject CN and DNS SAN, issued by `certificate.issuerRef` (default `bgs-ca`, kind
 `Issuer`, group `cert-manager.io`). cert-manager creates and renews its Secret.
-`certificate.secretName` defaults to `<BGS fullname>-tls`; both REST and frontend Pods use it. Conflicting `gateway.*Secret` overrides fail rendering.
+`certificate.secretName` defaults to `<BGS fullname>-tls`; both REST and frontend Pods use it. Conflicting `publicService.*Secret` overrides fail rendering.
 
 With `certificate.enabled=false` (base/local default), supply existing Secrets
-through `gateway.frontendSecret` and `gateway.restSecret`; separate names remain
+through `publicService.frontendSecret` and `publicService.restSecret`; separate names remain
 supported. The chart does not create a TLS Secret in this mode. Each must contain
 a matching `tls.crt` full chain and unencrypted
 PEM `tls.key`. Local tooling additionally requires public `ca.crt`. Frontend and REST mounts
@@ -197,6 +199,6 @@ updates without a restart. Keep Secret updates mutable and verify renewed certif
 
 ### Source addresses and IP bans
 
-The default single Gateway works with Cilium: frontend TLS passes through on 1119 and REST TLS passes through the Gateway on 443. `security.ipBansEnabled` defaults to `true`; account bans and suspensions remain active. `gateway.proxyProtocol` defaults to `off`, requiring no trusted CIDRs or Envoy Gateway extension resources. Optional `v2` mode requires Envoy Gateway, its BackendTrafficPolicy CRD, and frontend `gateway.trustedProxyCIDRs`; its ingress selectors must match the actual gateway Pods. The frontend must observe the client source IP; web login checks that address from its server-issued ticket. Set `security.ipBansEnabled=false` to disable enforcement without deleting bans.
+`security.ipBansEnabled` defaults to `true`; account bans and suspensions remain active. The frontend must observe the client source IP; web login checks that address from its server-issued ticket. The public Service uses `externalTrafficPolicy: Cluster` so every node announcing its address serves both ports (see [ADR 0001](docs/adr/0001-public-bgs-traffic-bypasses-gateway-api.md)); its load balancer must therefore forward without SNAT. With Cilium, set `publicService.annotations` to `service.cilium.io/forwarding-mode: dsr` (requires `bpf-lb-mode-annotation` and native routing). Chart 3.0.0 removed the Gateway API resources and PROXY v2 mode and renamed `gateway.*` to `publicService.*`; stale `gateway` values fail rendering. Set `security.ipBansEnabled=false` to disable enforcement without deleting bans.
 
-REST uses TLSRoute v1 and terminates HTTPS in BGS to preserve legacy client header casing. The existing REST leaf Secret is mounted read-only and reloaded every 30 seconds. Health probes remain HTTP on 8081. IP bans work with TLS passthrough because REST uses the frontend address stored in each login ticket, rather than its HTTPS peer. Upgrading from HTTP backends briefly interrupts login; roll back the full Helm release to restore both transport ends together.
+REST terminates HTTPS in BGS to preserve legacy client header casing. The existing REST leaf Secret is mounted read-only and reloaded every 30 seconds. Health probes remain HTTP on 8081. IP bans work with TLS passthrough because REST uses the frontend address stored in each login ticket, rather than its HTTPS peer. Upgrading from HTTP backends briefly interrupts login; roll back the full Helm release to restore both transport ends together.

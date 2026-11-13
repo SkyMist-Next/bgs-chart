@@ -3,8 +3,7 @@ database:
   create: true
   mariaDbRef: ''
   host: ''
-gateway:
-  className: cilium
+publicService:
   hostname: bgs.local
   frontendSecret: bgs-local-tls
   restSecret: bgs-local-tls
