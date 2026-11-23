@@ -342,6 +342,51 @@
       "snapshot": "e09a7e9029617af2d54193f6524b21c38eb662b2",
       "sourceSha": "3839805a3548f95bd19a93cb92b8a97497f268d3"
     },
+    "67b7f49900ba73465300911db3b3692de5347b95b07860064d85202fccef250c": {
+      "archive": "da46d5802efcc66c31b9908e61604526157773af",
+      "chartSha": "91b9bd241f0aeb13aa33b8cf3ac8fcb50bdc7a9e",
+      "deploymentContract": 2,
+      "id": "67b7f49900ba73465300911db3b3692de5347b95b07860064d85202fccef250c",
+      "image": "registry.neomatik.eu/skymist/bgs@sha256:00cd19187683218bd8c4379fd8cb8b0125f807da2a9c7673cefb482525d6640f",
+      "jobs": [
+        "skymist-bgs-bootstrap",
+        "skymist-bgs-migrate"
+      ],
+      "provides": {
+        "account-schema": 1,
+        "admin-request-protocol": 1,
+        "battlenet-15595": 1,
+        "battlenet-26972": 1
+      },
+      "requires": {
+        "operator": {
+          "realm-directory-schema": 4,
+          "realm-social-queue": 1
+        }
+      },
+      "runAttempt": 1,
+      "runId": 45259769398,
+      "schemaMigrations": [
+        "20180807123421-create-account.js",
+        "20180807124823-create-game-account.js",
+        "20180807151827-add-account-id.js",
+        "20180904090832-add-expansion.js",
+        "20180904090839-add-billing.js",
+        "20180909163237-add-tutorial-data.js",
+        "20261102000000-administration.js",
+        "20261103000000-realm-gameplay.js",
+        "20261103000001-immutable-game-expansion.js",
+        "20261103000002-realm-permissions.js",
+        "20261103000003-staged-realm-reservations.js",
+        "20261103000004-realm-process-permits.js",
+        "20261103000005-game-account-options.js",
+        "20261103000006-account-restoration.js",
+        "20261105000000-wow-license-identity.js",
+        "20261108000000-admin-request-list-index.js"
+      ],
+      "service": "bgs",
+      "sourceSha": "9fa203ebc27dda59ad22ff27c31c7cebe5a92e1d"
+    },
     "70da5c6e6e4f0177390a33491b3e44673c96d1317c549c85e542c8a8ab72e65d": {
       "archive": "5283cc6cd6ec9fe3d24a3d62ef0f4ac9d05467c3",
       "chartSha": "8aac545a0616128282498f0f663b9a13408324f5",
