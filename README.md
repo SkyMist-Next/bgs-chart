@@ -202,3 +202,17 @@ updates without a restart. Keep Secret updates mutable and verify renewed certif
 `security.ipBansEnabled` defaults to `true`; account bans and suspensions remain active. The frontend must observe the client source IP; web login checks that address from its server-issued ticket. The public Service uses `externalTrafficPolicy: Cluster` so every node announcing its address serves both ports (see [ADR 0001](docs/adr/0001-public-bgs-traffic-bypasses-gateway-api.md)); its load balancer must therefore forward without SNAT. With Cilium, set `publicService.annotations` to `service.cilium.io/forwarding-mode: dsr` (requires `bpf-lb-mode-annotation` and native routing). Chart 3.0.0 removed the Gateway API resources and PROXY v2 mode and renamed `gateway.*` to `publicService.*`; stale `gateway` values fail rendering. Set `security.ipBansEnabled=false` to disable enforcement without deleting bans.
 
 REST terminates HTTPS in BGS to preserve legacy client header casing. The existing REST leaf Secret is mounted read-only and reloaded every 30 seconds. Health probes remain HTTP on 8081. IP bans work with TLS passthrough because REST uses the frontend address stored in each login ticket, rather than its HTTPS peer. Upgrading from HTTP backends briefly interrupts login; roll back the full Helm release to restore both transport ends together.
+## Sequelize query traces
+
+Set `logging.sql.enabled: true` to capture query traces in a rotating file in
+each BGS Pod. Use an application image that supports `BGS_SQL_LOG_FILE`.
+For a selected Pod, read its current file with:
+
+```sh
+kubectl -n <namespace> exec <pod> -c bgs -- cat /var/log/bgs/sql/sequelize.log
+```
+
+The same directory holds up to three archives with suffixes `.1` through `.3`.
+Copy any diagnostics you need before replacing the Pod. The Pod-local volume
+is discarded at replacement, including when switching the setting back to
+`false`. Query traces may include inline values.
