@@ -8,6 +8,19 @@
     "services"
   ],
   "properties": {
+    "logging": {
+      "type": "object",
+      "properties": {
+        "sql": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
     "imagePullSecrets": {
       "type": "array",
       "items": {

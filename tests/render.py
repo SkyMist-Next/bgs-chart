@@ -73,6 +73,8 @@ for profile, replicas in [('local', 1), ('production', 2)]:
     assert len([d for d in docs if d['kind'] == 'MariaDB']) == (profile == 'local')
     for d in deployments:
         pod = d['spec']['template']['spec']
+        assert not any(v['name'] == 'sql-logs' for v in pod['volumes'])
+        assert not any(m['name'] == 'sql-logs' for m in pod['containers'][0]['volumeMounts'])
         frontend = d['metadata']['name'].endswith(('-frontend', '-rest'))
         cert_volumes = [v for v in pod['volumes'] if v['name'] == 'certs']
         assert len(cert_volumes) == int(frontend)
@@ -85,6 +87,7 @@ for profile, replicas in [('local', 1), ('production', 2)]:
             mount = next(m for m in pod['containers'][0]['volumeMounts'] if m['name'] == 'certs')
             assert mount['readOnly'] and 'subPath' not in mount
         env = {e['name']: e.get('value') for e in pod['containers'][0]['env']}
+        assert 'BGS_SQL_LOG_FILE' not in env
         assert env['BGS_IP_BANS_ENABLED'] == 'true'
         assert not {'BGS_PROXY_PROTOCOL', 'BGS_TRUSTED_PROXY_CIDRS', 'BGS_TRUSTED_HTTP_PROXY_CIDRS'} & env.keys()
         assert env['BGS_TLS_SERVER_NAME'] == 'bgs.example'
@@ -93,6 +96,23 @@ for profile, replicas in [('local', 1), ('production', 2)]:
         assert pod['initContainers'][0]['args'][-1] == 'wait'
         assert next(e['value'] for e in pod['containers'][0]['env'] if e['name'] == 'WEB_AUTH_URL') == 'https://bgs.example/bnetserver/login/'
     print(f'{profile}: deterministic render, seven deployments, private social worker, database users, schema gate and Redis discovery passed')
+
+    enabled = cmd + ['--set', 'logging.sql.enabled=true']
+    enabled_docs = [d for d in yaml.safe_load_all(subprocess.check_output(enabled)) if d]
+    enabled_deployments = [d for d in enabled_docs if d['kind'] == 'Deployment']
+    assert len(enabled_deployments) == len(deployments)
+    for d in enabled_deployments:
+        pod = d['spec']['template']['spec']
+        container = pod['containers'][0]
+        assert pod['securityContext']['runAsUser'] == pod['securityContext']['fsGroup'] == 1000
+        assert {'name': 'sql-logs', 'emptyDir': {'sizeLimit': '64Mi'}} in pod['volumes']
+        assert {'name': 'sql-logs', 'mountPath': '/var/log/bgs/sql'} in container['volumeMounts']
+        assert {'name': 'BGS_SQL_LOG_FILE', 'value': '/var/log/bgs/sql/sequelize.log'} in container['env']
+        assert not any(e['name'] == 'BGS_SQL_LOG_FILE' for e in pod['initContainers'][0]['env'])
+
+invalid = subprocess.run(cmd + ['--set-string', 'logging.sql.enabled=true'], capture_output=True)
+assert invalid.returncode != 0 and (b'logging.sql.enabled' in invalid.stderr or b'/logging/sql/enabled' in invalid.stderr)
+print('SQL log opt-in and Pod-local storage validated in both profiles')
 
 social_resources = {'requests': {'cpu': '250m', 'memory': '256Mi'}, 'limits': {'memory': '768Mi'}}
 for social_replicas in [1, 3]:

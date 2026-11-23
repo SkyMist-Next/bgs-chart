@@ -1,4 +1,5 @@
 {{- $name := include "bgs.name" . }}
+{{- $sqlLogging := .Values.logging.sql.enabled }}
 {{- range $service, $settings := .Values.services }}
 {{- $component := $service | replace "_" "-" }}
 {{- $replicas := int (dig "replicas" $.Values.replicas $settings) }}
@@ -37,7 +38,7 @@ spec:
       nodeSelector: {{ default $.Values.nodeSelector $settings.nodeSelector | toJson }}
       affinity: {{ default $.Values.affinity $settings.affinity | toJson }}
       tolerations: {{ default $.Values.tolerations $settings.tolerations | toJson }}
-      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000, {{ if or (eq $service "frontend") (eq $service "rest") }}fsGroup: 1000, {{ end }}seccompProfile: {type: RuntimeDefault}}
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000, {{ if or $sqlLogging (eq $service "frontend") (eq $service "rest") }}fsGroup: 1000, {{ end }}seccompProfile: {type: RuntimeDefault}}
       initContainers:
         - name: schema
           image: {{ include "bgs.image" $ | quote }}
@@ -70,6 +71,9 @@ spec:
             - configMapRef: {name: {{ $name }}-redis-connection}
           env:
             - {name: NODE_ENV, value: production}
+            {{- if $sqlLogging }}
+            - {name: BGS_SQL_LOG_FILE, value: /var/log/bgs/sql/sequelize.log}
+            {{- end }}
             - {name: BGS_REALM_DATABASE, value: {{ $.Values.realmDirectory.database | quote }}}
             - {name: BGS_IP_BANS_ENABLED, value: {{ $.Values.security.ipBansEnabled | quote }}}
             - {name: BGS_HEALTH_PORT, value: "8081"}
@@ -97,12 +101,19 @@ spec:
             {{- end }}
           volumeMounts:
             - {name: config, mountPath: /usr/src/app/config, readOnly: true}
+            {{- if $sqlLogging }}
+            - {name: sql-logs, mountPath: /var/log/bgs/sql}
+            {{- end }}
             {{- if or (eq $service "frontend") (eq $service "rest") }}
             - {name: certs, mountPath: /usr/src/app/certs, readOnly: true}
             {{- end }}
       volumes:
         - name: config
           configMap: {name: {{ $name }}-config}
+        {{- if $sqlLogging }}
+        - name: sql-logs
+          emptyDir: {sizeLimit: 64Mi}
+        {{- end }}
         {{- if or (eq $service "frontend") (eq $service "rest") }}
         - name: certs
           secret: {secretName: {{ include "bgs.tlsSecret" (merge (dict "endpoint" (ternary "restSecret" "frontendSecret" (eq $service "rest"))) $) | quote }}, defaultMode: 0440, items: [{key: tls.crt, path: tls.crt}, {key: tls.key, path: tls.key}]}
