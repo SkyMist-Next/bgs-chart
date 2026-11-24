@@ -1,8 +1,8 @@
 {
   "chartSha": "91b9bd241f0aeb13aa33b8cf3ac8fcb50bdc7a9e",
   "deploymentContract": 2,
-  "id": "e8589bd2ff7a9f7ffe9631ac61e49c8216b29bb1a3df76b93fa07c8551de10fc",
-  "image": "registry.neomatik.eu/skymist/bgs@sha256:21d7e57f40594527b12003833e2a7d2da330a709cb9b38cb7e78080eae41ad08",
+  "id": "3d257a2b0a74259d6cb2970bf71727b7c871282ac40d2bec58b844fd0958c889",
+  "image": "registry.neomatik.eu/skymist/bgs@sha256:197f53ddcd6ff5feb98f36b68a58e439ef3ab65e3511d0a9db15c76e1ee9604d",
   "provides": {
     "account-schema": 1,
     "admin-request-protocol": 1,
@@ -15,7 +15,7 @@
     }
   },
   "runAttempt": 1,
-  "runId": 45272818143,
+  "runId": 45340057456,
   "schemaMigrations": [
     "20180807123421-create-account.js",
     "20180807124823-create-game-account.js",
@@ -35,5 +35,5 @@
     "20261108000000-admin-request-list-index.js"
   ],
   "service": "bgs",
-  "sourceSha": "dbce5ad0c8b4cafafc15b5c35fb46ca7fe3c17cf"
+  "sourceSha": "92154698780f5254ebab7b489873364758d106db"
 }
