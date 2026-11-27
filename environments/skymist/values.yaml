@@ -7,7 +7,7 @@ database:
 gitops:
   enabled: true
 image:
-  digest: sha256:dea0184b247611f5a42bcbc980ceea5e7478aa68942d78cc92cc6fb48c330d77
+  digest: sha256:a5a792387245f2fc0e26f5174745a04e65be82f297ff5aefdcc9c8640006d1ce
   repository: registry.neomatik.eu/skymist/bgs
   tag: ''
 imagePullSecrets:
