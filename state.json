@@ -437,7 +437,7 @@
   "pending": {
     "deadline": 1795807494,
     "healthySince": null,
-    "lastObserved": null,
+    "lastObserved": 1795805713,
     "release": "7a2df5ce1463dcc7af9cd352cd7f28cd8548d56c045f233a25b2a9eb6fc8074a",
     "revision": "3764ea865d762b6ea10a2000118478e531f9b5e1",
     "started": 1795805694
