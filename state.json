@@ -439,7 +439,7 @@
     "healthySince": null,
     "lastObserved": null,
     "release": "bb4ba15c0d2475427ca1721ff5b68598e0998e4a498c033773a2f4111b714539",
-    "revision": null,
+    "revision": "8c3c47a3ded3b37a4a65847361b3175d4a26a454",
     "started": 1795773655
   },
   "releases": {
@@ -891,6 +891,7 @@
         "20261108000000-admin-request-list-index.js"
       ],
       "service": "bgs",
+      "snapshot": "8c3c47a3ded3b37a4a65847361b3175d4a26a454",
       "sourceSha": "f66d354d2802768209ed8ca30168a2f48b6978ad"
     },
     "c8b3a662a81f3677d500d6d55e14287f6594ca9f57c429ddda80f7e1abb2cf15": {
